@@ -180,23 +180,13 @@ export default function SongDetail() {
               {(() => {
                  const download = downloads[song.id];
                  if (download?.status === "downloading" || download?.status === "syncing") {
-                    return (
-                      <div className="relative mb-2">
-                        <RefreshCw size={32} className="text-indigo-400 animate-spin" />
-                        <motion.div 
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: [0.2, 0.5, 0.2] }}
-                          transition={{ repeat: Infinity, duration: 2 }}
-                          className="absolute inset-0 bg-indigo-400/20 blur-xl rounded-full"
-                        />
-                      </div>
-                    );
+                    return <RefreshCw size={32} className="text-indigo-500/40 animate-spin mb-2" />;
                  }
                  if (download?.status === "failed") {
-                    return <AlertCircle size={32} className="text-rose-500 mb-2 drop-shadow-[0_0_10px_rgba(244,63,94,0.4)]" />;
+                    return <AlertCircle size={32} className="text-rose-500/40 mb-2" />;
                  }
                  if (isOffline || download?.status === "completed") {
-                    return <CheckCircle2 size={32} className="text-green-500 mb-2 drop-shadow-[0_0_10px_rgba(34,197,94,0.4)]" />;
+                    return <CheckCircle2 size={32} className="text-green-500/40 mb-2" />;
                  }
                  return null;
               })()}

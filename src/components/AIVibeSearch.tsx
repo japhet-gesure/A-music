@@ -140,15 +140,6 @@ export default function AIVibeSearch() {
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  useEffect(() => {
-    // On load, if we have recommendations (from local storage or default), fetch artwork for the first one
-    if (recommendations.length > 0 && recommendations[0].title) {
-      fetchArtwork(recommendations[0].title, recommendations[0].artist).then(art => {
-        if (art) setHeaderBg(art);
-      });
-    }
-  }, []);
-
   const handleVibeSearch = async (inputPrompt: string) => {
     const finalPrompt = inputPrompt.trim();
     if (!finalPrompt) return;
@@ -559,7 +550,7 @@ export default function AIVibeSearch() {
                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/10 group/btn"
                        >
                          <Info size={16} />
-                         <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block overflow-hidden max-w-0 group-hover/btn:max-w-[100px] transition-all duration-500">View Details</span>
+                         <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block overflow-hidden max-w-0 group-hover/btn:max-w-[100px] transition-all duration-500">Details</span>
                        </button>
                        
                        <div className="h-4 w-[1px] bg-white/10 mx-1" />
@@ -571,7 +562,7 @@ export default function AIVibeSearch() {
                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 text-white/40 hover:text-cyan-400 hover:bg-cyan-400/10 transition-all border border-transparent hover:border-cyan-400/20 group/btn"
                        >
                          <ListPlus size={16} />
-                         <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block overflow-hidden max-w-0 group-hover/btn:max-w-[100px] transition-all duration-500">Add to Playlist</span>
+                         <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block overflow-hidden max-w-0 group-hover/btn:max-w-[100px] transition-all duration-500">Collect</span>
                        </button>
                     </div>
                     {song.pending ? (
