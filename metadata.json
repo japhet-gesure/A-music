@@ -1,0 +1,9 @@
+{
+  "name": "A+ Music",
+  "description": "A sophisticated music streaming platform integrating Spotify and YouTube with personalized libraries, collaborative playlists, and AI-powered recommendations.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": []
+}

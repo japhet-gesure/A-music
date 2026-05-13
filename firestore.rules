@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ---------------------------------------------------------
+    // HELPERS
+    // ---------------------------------------------------------
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() { return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid == request.auth.uid &&
+             data.email == request.auth.token.email &&
+             (data.get('role', 'user') == 'user' || isAdmin());
+    }
+
+    function isValidSong(data) {
+      return data.keys().hasAll(['id', 'title', 'artist', 'source', 'sourceId']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.title is string && data.title.size() <= 200 &&
+             data.artist is string && data.artist.size() <= 200 &&
+             data.source in ['spotify', 'youtube', 'upload'] &&
+             data.sourceId is string;
+    }
+
+    function isValidPlaylist(data) {
+      return data.keys().hasAll(['id', 'name', 'ownerId']) &&
+             data.id.size() <= 128 &&
+             data.name is string && data.name.size() <= 100 &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isValidLike(data) {
+      return data.keys().hasAll(['targetId', 'type', 'createdAt']) &&
+             data.targetId is string &&
+             data.type in ['song', 'playlist'] &&
+             data.createdAt == request.time;
+    }
+
+    // ---------------------------------------------------------
+    // DEFAULT DENY
+    // ---------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ---------------------------------------------------------
+    // USERS
+    // ---------------------------------------------------------
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(userId) && isValidUser(incoming());
+      allow update: if isSignedIn() && isOwner(userId) && 
+                      incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'preferences']);
+      
+      match /history/{historyId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && incoming().songId is string && incoming().playedAt == request.time;
+      }
+
+      match /likes/{likeId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidLike(incoming());
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // ---------------------------------------------------------
+    // SONGS
+    // ---------------------------------------------------------
+    match /songs/{songId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidSong(incoming()) && isValidId(songId);
+      allow update: if isAdmin() || (isSignedIn() && existing().uploadedBy == request.auth.uid && 
+                      incoming().diff(existing()).affectedKeys().hasOnly(['title', 'artist', 'genre', 'album', 'thumbnail']));
+      allow delete: if isAdmin() || (isSignedIn() && existing().uploadedBy == request.auth.uid);
+    }
+
+    // ---------------------------------------------------------
+    // PLAYLISTS
+    // ---------------------------------------------------------
+    match /playlists/{playlistId} {
+      allow read: if isSignedIn() && (existing().isPublic == true || existing().ownerId == request.auth.uid || request.auth.uid in existing().get('memberIds', []));
+      allow create: if isSignedIn() && isValidPlaylist(incoming()) && isValidId(playlistId);
+      allow update: if isSignedIn() && (
+        (existing().ownerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'isPublic', 'collaborative', 'memberIds', 'songIds'])) ||
+        ((existing().collaborative == true || request.auth.uid in existing().get('memberIds', [])) && incoming().diff(existing()).affectedKeys().hasOnly(['songIds']))
+      );
+      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+    }
+
+    // ---------------------------------------------------------
+    // LYRICS
+    // ---------------------------------------------------------
+    match /lyrics/{songId} {
+      allow read: if true;
+      allow write: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/songs/$(songId)).data.uploadedBy == request.auth.uid);
+    }
+    
+    // ---------------------------------------------------------
+    // ADMINS (READ-ONLY)
+    // ---------------------------------------------------------
+    match /admins/{userId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+  }
+}

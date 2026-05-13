@@ -1,0 +1,122 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Song": {
+      "title": "Song",
+      "description": "Metadata for a music track",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "artist": { "type": "string" },
+        "album": { "type": "string" },
+        "genre": { "type": "string" },
+        "duration": { "type": "integer" },
+        "source": { "type": "string", "enum": ["spotify", "youtube", "upload"] },
+        "sourceId": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "likesCount": { "type": "integer" },
+        "uploadedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "artist", "source", "sourceId"]
+    },
+    "Playlist": {
+      "title": "Playlist",
+      "description": "A collection of songs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "isPublic": { "type": "boolean" },
+        "collaborative": { "type": "boolean" },
+        "memberIds": { "type": "array", "items": { "type": "string" } },
+        "songIds": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "ownerId"]
+    },
+    "Lyric": {
+      "title": "Lyric",
+      "description": "Lyrics for a specific song",
+      "type": "object",
+      "properties": {
+        "songId": { "type": "string" },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "time": { "type": "number" },
+              "text": { "type": "string" }
+            }
+          }
+        },
+        "fullText": { "type": "string" }
+      }
+    },
+    "HistoryEvent": {
+      "title": "HistoryEvent",
+      "description": "A record of a song played by a user",
+      "type": "object",
+      "properties": {
+        "songId": { "type": "string" },
+        "playedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["songId", "playedAt"]
+    },
+    "UserLike": {
+      "title": "UserLike",
+      "description": "A liked item (song or playlist)",
+      "type": "object",
+      "properties": {
+        "targetId": { "type": "string" },
+        "type": { "type": "string", "enum": ["song", "playlist"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["targetId", "type", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Profiles for registered users"
+    },
+    "users/{userId}/history/{historyId}": {
+      "schema": "HistoryEvent",
+      "description": "Listening history for a specific user"
+    },
+    "users/{userId}/likes/{likeId}": {
+      "schema": "UserLike",
+      "description": "Likes (songs and playlists) for a specific user"
+    },
+    "songs/{songId}": {
+      "schema": "Song",
+      "description": "Global catalog of songs"
+    },
+    "playlists/{playlistId}": {
+      "schema": "Playlist",
+      "description": "User-created and collaborative playlists"
+    },
+    "lyrics/{songId}": {
+      "schema": "Lyric",
+      "description": "Lyrics synced to song timestamps"
+    }
+  }
+}
