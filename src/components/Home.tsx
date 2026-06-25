@@ -19,7 +19,7 @@ const MOCK_SONGS: Song[] = [
 
 export default function Home() {
   const { setSong, currentSong, isPlaying, togglePlay, recentlyPlayed, downloads } = usePlayerStore();
-  const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [offlineSongs, setOfflineSongs] = useState<Song[]>([]);
   const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set());
 
@@ -132,10 +132,10 @@ export default function Home() {
   return (
     <div className="space-y-12">
       <AnimatePresence>
-        {selectedSongId && (
+        {selectedSong && (
           <AddToPlaylistModal 
-            songId={selectedSongId} 
-            onClose={() => setSelectedSongId(null)} 
+            song={selectedSong} 
+            onClose={() => setSelectedSong(null)} 
           />
         )}
       </AnimatePresence>
@@ -154,7 +154,7 @@ export default function Home() {
           <p className="text-white/60 text-sm max-w-md mb-6 italic font-medium">The definitive collection of future-facing electronic pop from across the web.</p>
           <div className="flex gap-4">
             <button 
-               onClick={() => setSong(MOCK_SONGS[0])}
+               onClick={() => setSong(MOCK_SONGS[0], MOCK_SONGS)}
                className="btn-primary"
             >
                Play Now
@@ -173,15 +173,15 @@ export default function Home() {
               <button className="text-[10px] font-bold text-white/30 hover:text-white uppercase tracking-widest">View All</button>
            </div>
            <div className="flex gap-6 overflow-x-auto pb-4 scroll-hide">
-               {offlineSongs.slice(0, 8).map((song) => (
+               {offlineSongs.slice(0, 8).map((song, i) => (
                 <div 
-                  key={song.id} 
-                  onClick={() => setSong(song)}
+                  key={`${song.id}-${i}`} 
+                  onClick={() => setSong(song, offlineSongs.slice(0, 8))}
                   className="min-w-[120px] group cursor-pointer"
                 >
                    <div className="w-24 h-24 rounded-2xl overflow-hidden relative mb-2 shadow-xl border border-white/5">
                       <img src={song.thumbnail || undefined} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" />
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-100 block transition-opacity">
                         <Play size={24} fill="white" className="text-white" />
                       </div>
                       <div className="absolute top-2 right-2">
@@ -225,7 +225,7 @@ export default function Home() {
                </div>
             ) : (
                <div className="space-y-1">
-                  {recentlyPlayed.map((song) => {
+                  {recentlyPlayed.map((song, i) => {
                      const isActive = currentSong?.id === song.id;
                      const isDownloaded = offlineSongs.some(os => os.id === song.id);
                      const isDownloading = downloadingIds.has(song.id);
@@ -233,10 +233,10 @@ export default function Home() {
                      return (
                      <motion.div 
                         layout
-                        key={song.id}
+                        key={`${song.id}-${i}`}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        onClick={() => isActive ? togglePlay() : setSong(song)}
+                        onClick={() => isActive ? togglePlay() : setSong(song, recentlyPlayed)}
                         className={cn(
                           "flex items-center justify-between p-3 rounded-xl transition-all group cursor-pointer border",
                           isActive ? "bg-white/10 border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.4)]" : "bg-white/5 hover:bg-white/10 border-transparent hover:border-white/5"
@@ -264,12 +264,12 @@ export default function Home() {
                            <Link 
                               to={`/song/${song.id}`}
                               onClick={(e) => e.stopPropagation()}
-                              className="p-2 rounded-xl text-white/20 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all"
+                              className="p-2 rounded-xl text-white/20 hover:text-white hover:bg-white/10 opacity-100 block transition-all"
                               title="View Details"
                            >
                               <Info size={16} className="drop-shadow-[0_0_8px_currentColor]" />
                            </Link>
-                           <LikeButton targetId={song.id} type="song" size={16} className="opacity-0 group-hover:opacity-100 transition-all" />
+                           <LikeButton targetId={song.id} type="song" size={16} className="opacity-100 block transition-all" />
                            
                            <button 
                              onClick={(e) => { 
@@ -278,7 +278,7 @@ export default function Home() {
                              }}
                              className={cn(
                                "p-2 rounded-xl transition-all",
-                               isDownloaded ? "text-emerald-400 bg-emerald-500/5 shadow-[0_0_15px_rgba(52,211,153,0.1)]" : "text-white/20 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100"
+                               isDownloaded ? "text-emerald-400 bg-emerald-500/5 shadow-[0_0_15px_rgba(52,211,153,0.1)]" : "text-white/20 hover:text-white hover:bg-white/10 opacity-100 block"
                              )}
                              disabled={isDownloaded || isDownloading}
                            >
@@ -292,8 +292,8 @@ export default function Home() {
                            </button>
 
                            <button 
-                             onClick={(e) => { e.stopPropagation(); setSelectedSongId(song.id); }}
-                             className="p-2 rounded-xl bg-white/5 text-white/20 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all font-black italic"
+                             onClick={(e) => { e.stopPropagation(); setSelectedSong(song); }}
+                             className="p-2 rounded-xl bg-white/5 text-white/20 hover:text-white hover:bg-white/10 opacity-100 block transition-all font-black italic"
                              title="Add to Playlist"
                            >
                               <ListPlus size={16} className="drop-shadow-[0_0_8px_currentColor]" />
@@ -306,7 +306,7 @@ export default function Home() {
                                  <motion.div animate={{ height: [8, 12, 4, 16, 8] }} transition={{ repeat: Infinity, duration: 0.8, delay: 0.4 }} className="w-1 bg-purple-500 shadow-[0_0_10px_#A855F7]" />
                               </div>
                            ) : (
-                              <div className={cn("ml-4 transition-all duration-300", isActive ? "opacity-100 scale-125" : "opacity-0 group-hover:opacity-100 scale-100 group-hover:scale-110")}>
+                              <div className={cn("ml-4 transition-all duration-300", isActive ? "opacity-100 scale-125" : "opacity-100 block scale-100 group-hover:scale-110")}>
                                  <div className={cn(
                                    "p-2 rounded-full",
                                    isActive ? "bg-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)]" : "text-purple-400"
@@ -356,28 +356,35 @@ export default function Home() {
                     "p-4 rounded-2xl transition-all duration-300 group cursor-pointer border",
                     isActive ? "bg-white/10 border-white/20 shadow-[0_0_30px_rgba(168,85,247,0.1)]" : "bg-white/5 hover:bg-white/10 border-white/5"
                   )}
-                  onClick={() => isActive ? togglePlay() : setSong(song)}
+                  onClick={() => {
+                    const displayedSongs = MOCK_SONGS.concat(MOCK_SONGS).slice(0, 6);
+                    if (isActive) {
+                      togglePlay();
+                    } else {
+                      setSong(song, displayedSongs);
+                    }
+                  }}
                >
                   <div className="relative aspect-square mb-4 shadow-2xl rounded-xl overflow-hidden">
                      <img src={song.thumbnail || undefined} alt={song.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                      <div className={cn(
                        "absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent transition-opacity",
-                       isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                       isActive ? "opacity-100" : "opacity-100 block"
                      )} />
                      <div className="absolute top-3 left-3 flex gap-2">
-                        <LikeButton targetId={song.id} type="song" size={12} className="bg-black/60 rounded-full p-1.5 opacity-0 group-hover:opacity-100 shadow-2xl transition-all duration-300" />
+                        <LikeButton targetId={song.id} type="song" size={12} className="bg-black/60 rounded-full p-1.5 opacity-100 block shadow-2xl transition-all duration-300" />
                         <Link 
                            to={`/song/${song.id}`}
                            onClick={(e) => e.stopPropagation()}
-                           className="bg-black/60 rounded-full p-1.5 opacity-0 group-hover:opacity-100 shadow-2xl transition-all duration-300 hover:scale-110 text-white"
+                           className="bg-black/60 rounded-full p-1.5 opacity-100 block shadow-2xl transition-all duration-300 hover:scale-110 text-white"
                            title="View Details"
                         >
                            <Info size={12} />
                         </Link>
                      </div>
                      <button 
-                        onClick={(e) => { e.stopPropagation(); setSelectedSongId(song.id); }}
-                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-2xl transition-all duration-300 hover:scale-110 font-black italic"
+                        onClick={(e) => { e.stopPropagation(); setSelectedSong(song); }}
+                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center opacity-100 block shadow-2xl transition-all duration-300 hover:scale-110 font-black italic"
                         title="Add to Playlist"
                      >
                         <ListPlus size={16} />

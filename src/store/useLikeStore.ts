@@ -56,7 +56,7 @@ export const useLikeStore = create<LikeState>((set, get) => {
       }
 
       const likesRef = collection(db, "users", user.uid, "likes");
-      unsubscribe = onSnapshot(likesRef, (snapshot) => {
+      unsubscribe = onSnapshot(likesRef, async (snapshot) => {
         const songs = new Set<string>();
         const playlists = new Set<string>();
         
@@ -67,6 +67,39 @@ export const useLikeStore = create<LikeState>((set, get) => {
         });
 
         set({ likedSongs: songs, likedPlaylists: playlists, initialized: true });
+
+        // Async sync with usePlayerStore to cache/persist complete metadata
+        try {
+          const { usePlayerStore } = await import("./usePlayerStore");
+          const playerState = usePlayerStore.getState();
+          const currentPersistedLiked = playerState.likedSongs || [];
+
+          // Remove any that are no longer liked according to Firestore list
+          let updatedLiked = currentPersistedLiked.filter(s => songs.has(s.id));
+
+          // Fetch full metadata for any new likes we don't have in memory yet
+          const existingIds = new Set(updatedLiked.map(s => s.id));
+          const newlyLikedIds = Array.from(songs).filter(id => !existingIds.has(id));
+
+          if (newlyLikedIds.length > 0) {
+            const { fetchSongMetadata } = await import("../services/musicService");
+            const fetched = await Promise.all(
+              newlyLikedIds.map(async (id) => {
+                try {
+                  return await fetchSongMetadata(id);
+                } catch {
+                  return null;
+                }
+              })
+            );
+            const valid = fetched.filter((s): s is any => !!s);
+            updatedLiked = [...updatedLiked, ...valid];
+          }
+
+          usePlayerStore.setState({ likedSongs: updatedLiked });
+        } catch (err) {
+          console.warn("Failed to synchronize firestore likes snapshot to playerStore:", err);
+        }
       }, (error) => {
         console.error("Likes listener error:", error);
       });

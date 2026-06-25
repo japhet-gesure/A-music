@@ -1,40 +1,48 @@
 import axios from "axios";
-import { Type } from "@google/genai";
-import { ai } from "../lib/gemini";
+import { safeSessionStorage } from "../lib/safeStorage";
+
+const sessionStorage = safeSessionStorage;
 
 export async function getPersonalizedRecommendations(
   listeningHistory: { title: string; artist: string }[],
-  favoriteGenres: string[]
+  favoriteGenres: string[],
+  forceRefresh = false
 ): Promise<{ title: string; artist: string; reason: string }[]> {
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `User's Music History: ${JSON.stringify(listeningHistory)}. 
-Top Genres: ${JSON.stringify(favoriteGenres || [])}.
-Analyze this acoustic profile and recommend 5 unique, real-world songs. 
-For each, provide 'title', 'artist', and a poetic 'reason' (max 60 chars). 
-Return ONLY a JSON array.`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              title: { type: Type.STRING },
-              artist: { type: Type.STRING },
-              reason: { type: Type.STRING },
-            },
-            required: ["title", "artist", "reason"],
-          },
-        },
-      },
-    });
+  const cacheKey = "music_ai_recommendations";
 
-    const data = JSON.parse(response.text || "[]");
+  if (!forceRefresh) {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (e) {
+        // Continue to fresh fetch
+      }
+    }
+  }
+
+  try {
+    const response = await axios.post("/api/recommendations", {
+      listeningHistory,
+      favoriteGenres
+    });
+    const data = response.data || [];
+    if (data.length > 0) {
+      sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    }
     return data;
   } catch (error) {
-    console.error("AI Recommendation Error:", error);
+    console.error("AI Recommendation Error (Client API call):", error);
+    // On error, return cached data if available
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
     return [];
   }
 }

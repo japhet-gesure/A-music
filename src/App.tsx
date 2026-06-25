@@ -7,6 +7,7 @@ import ForYou from "./components/ForYou";
 import Liked from "./components/Liked";
 import Playlists from "./components/Playlists";
 import AIVibeSearch from "./components/AIVibeSearch";
+import AIDJ from "./components/AIDJ";
 import PlaylistDetail from "./components/PlaylistDetail";
 import CreatePlaylist from "./components/CreatePlaylist";
 import LocalFiles from "./components/LocalFiles";
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />
           <Route path="/vibes" element={<AIVibeSearch />} />
+          <Route path="/ai-dj" element={<AIDJ />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/for-you" element={<ForYou />} />
           <Route path="/library" element={<LocalFiles />} />

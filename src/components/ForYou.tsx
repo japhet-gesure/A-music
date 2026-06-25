@@ -17,7 +17,7 @@ export default function ForYou() {
   const { setSong, currentSong, isPlaying, togglePlay, recentlyPlayed } = usePlayerStore();
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = async (forceRefresh = false) => {
     if (recentlyPlayed.length === 0) {
       setRecommendations([]);
       return;
@@ -35,7 +35,11 @@ export default function ForYou() {
           .filter((g): g is string => !!g)
       )).slice(0, 3);
 
-      const recs = await getPersonalizedRecommendations(history, genres.length > 0 ? genres : ["Contemporary", "Electronic"]);
+      const recs = await getPersonalizedRecommendations(
+        history, 
+        genres.length > 0 ? genres : ["Contemporary", "Electronic"],
+        forceRefresh
+      );
       setRecommendations(recs);
     } catch (err) {
       console.error("Failed to fetch AI recommendations:", err);
@@ -46,7 +50,7 @@ export default function ForYou() {
   };
 
   useEffect(() => {
-    fetchRecommendations();
+    fetchRecommendations(false);
   }, []);
 
   return (
@@ -57,7 +61,7 @@ export default function ForYou() {
           <p className="text-white/40 text-sm font-medium uppercase tracking-widest mt-2">Personalized curations updated in real-time</p>
         </div>
         <button 
-          onClick={fetchRecommendations}
+          onClick={() => fetchRecommendations(true)}
           disabled={loading}
           className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all disabled:opacity-50"
         >
@@ -115,7 +119,7 @@ export default function ForYou() {
                      setSong(queue[i], queue);
                    }}
                    className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity rounded-2xl ${
-                     isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                     isActive ? "opacity-100" : "opacity-100 block"
                    }`}
                  >
                    {isActive && isPlaying ? (

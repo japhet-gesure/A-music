@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Heart, Play, ListPlus, Loader2, Music, Trash2, Info } from "lucide-react";
+import { Heart, Play, ListPlus, Loader2, Music, Trash2, Info, MoreHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePlayerStore, Song } from "../store/usePlayerStore";
 import { useLikeStore } from "../store/useLikeStore";
 import { motion, AnimatePresence } from "motion/react";
-import { db } from "../lib/firebase";
+import { db, auth } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { fetchSongMetadata } from "../services/musicService";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
@@ -13,48 +13,68 @@ import { LikeButton } from "./LikeButton";
 // import { getTrack } from "../lib/offlineStorage";
 
 export default function Liked() {
-  const { likedSongs, likedPlaylists, toggleLike } = useLikeStore();
-  const { setSong, currentSong, isPlaying, togglePlay } = usePlayerStore();
-  const [songs, setSongs] = useState<Song[]>([]);
+  const { likedSongs: persistedSongs, setSong, currentSong, isPlaying, togglePlay } = usePlayerStore();
+  const { likedPlaylists, toggleLike } = useLikeStore();
   const [playlists, setPlaylists] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(true);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
 
   useEffect(() => {
-    const fetchLikedContent = async () => {
-      setLoading(true);
+    const fetchLikedPlaylists = async () => {
+      setLoadingPlaylists(true);
       try {
-        // Fetch songs
-        const songPromises = Array.from(likedSongs).map(id => fetchSongMetadata(id));
-        const resolvedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
-        setSongs(resolvedSongs);
-
         // Fetch playlists
         const playlistPromises = Array.from(likedPlaylists).map(async (id) => {
-          const d = await getDoc(doc(db, "playlists", id));
-          return d.exists() ? { id: d.id, ...d.data() } : null;
+          try {
+            const d = await getDoc(doc(db, "playlists", id));
+            return d.exists() ? { id: d.id, ...d.data() } : null;
+          } catch (err: any) {
+            const isPermissionError = err && (err.code === "permission-denied" || String(err).includes("permissions") || String(err).includes("permission") || String(err).includes("denied"));
+            if (isPermissionError) {
+              const errInfo = {
+                error: err instanceof Error ? err.message : String(err),
+                authInfo: {
+                  userId: auth.currentUser?.uid || null,
+                  email: auth.currentUser?.email || null,
+                  emailVerified: auth.currentUser?.emailVerified || null,
+                  isAnonymous: auth.currentUser?.isAnonymous || null,
+                  tenantId: auth.currentUser?.tenantId || null,
+                  providerInfo: auth.currentUser?.providerData?.map(provider => ({
+                    providerId: provider.providerId,
+                    email: provider.email,
+                  })) || []
+                },
+                operationType: "get",
+                path: `playlists/${id}`
+              };
+              console.error('Firestore Error: ', JSON.stringify(errInfo));
+            } else {
+              console.error(`Error fetching playlist ${id}:`, err);
+            }
+            return null; // Gracefully continue loading other liked playlists to avoid complete failure
+          }
         });
         const resolvedPlaylists = (await Promise.all(playlistPromises)).filter(Boolean);
         setPlaylists(resolvedPlaylists);
       } catch (err) {
-        console.error("Failed to fetch liked content:", err);
+        console.error("Failed to fetch liked playlists:", err);
       } finally {
-        setLoading(false);
+        setLoadingPlaylists(false);
       }
     };
 
-    if (likedSongs.size >= 0 || likedPlaylists.size >= 0) {
-      fetchLikedContent();
+    if (likedPlaylists.size >= 0) {
+      fetchLikedPlaylists();
     }
-  }, [likedSongs, likedPlaylists]);
+  }, [likedPlaylists]);
 
   return (
     <div className="space-y-12">
       <AnimatePresence>
-        {selectedSongId && (
+        {selectedSong && (
           <AddToPlaylistModal 
-            songId={selectedSongId} 
-            onClose={() => setSelectedSongId(null)} 
+            song={selectedSong} 
+            onClose={() => setSelectedSong(null)} 
           />
         )}
       </AnimatePresence>
@@ -96,7 +116,7 @@ export default function Liked() {
                    </div>
                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent p-4 flex items-end justify-between">
                      <LikeButton targetId={playlist.id} type="playlist" size={20} />
-                     <button className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-2xl transition-all hover:scale-110">
+                     <button className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center opacity-100 block shadow-2xl transition-all hover:scale-110">
                         <Play fill="black" size={20} />
                      </button>
                    </div>
@@ -118,17 +138,13 @@ export default function Liked() {
            <h2 className="text-2xl font-black italic tracking-tighter uppercase">Liked Songs</h2>
         </div>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <Loader2 size={48} className="text-purple-500 animate-spin" />
-          </div>
-        ) : songs.length === 0 ? (
+        {persistedSongs.length === 0 ? (
           <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[40px] bg-white/2">
              <p className="text-zinc-600 font-bold italic uppercase text-lg">Your heart is quiet. Like a song to fill it.</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {songs.map((song, index) => {
+            {persistedSongs.map((song, index) => {
               const isActive = currentSong?.id === song.id;
               return (
                 <motion.div
@@ -136,43 +152,49 @@ export default function Liked() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
+                  whileHover={{ 
+                    y: -4, 
+                    scale: 1.01,
+                    boxShadow: "0 20px 25px -5px rgba(0,0,0,0.4), 0 10px 10px -5px rgba(0,0,0,0.4)"
+                  }}
                   className={cn(
-                    "flex items-center justify-between p-4 rounded-2xl transition-all group cursor-pointer border",
+                    "w-full flex items-center justify-between gap-3 p-4 rounded-2xl transition-all group cursor-pointer border",
                     isActive ? "bg-white/10 border-white/10 shadow-lg" : "bg-white/5 hover:bg-white/10 border-transparent"
                   )}
-                  onClick={() => isActive ? togglePlay() : setSong(song, songs)}
+                  onClick={() => isActive ? togglePlay() : setSong(song, persistedSongs)}
                 >
-                  <div className="flex items-center gap-4 min-w-0">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
                     <div className="w-12 h-12 rounded-xl overflow-hidden relative shadow-lg shrink-0 bg-zinc-800">
                       <img src={song.thumbnail || undefined} alt={song.title} className="w-full h-full object-cover" />
                       {isActive && <div className="absolute inset-0 bg-purple-500/20" />}
                     </div>
-                    <div className="min-w-0 pr-4">
+                    <div className="flex-grow flex-1 min-w-0">
                       <h3 className={cn("font-bold text-sm tracking-tight truncate", isActive ? "text-purple-400" : "text-white")}>{song.title}</h3>
                       <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest truncate">{song.artist}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6">
-                    <div className="hidden group-hover:flex items-center gap-2">
-                      <Link 
-                        to={`/song/${song.id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-2 rounded-full bg-white/5 text-white/40 hover:text-white"
-                        title="View Details"
-                      >
-                        <Info size={18} />
-                      </Link>
-                      <LikeButton targetId={song.id} type="song" size={18} />
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setSelectedSongId(song.id); }}
-                        className="p-2 rounded-full bg-white/5 text-white/40 hover:text-white"
-                      >
-                        <ListPlus size={18} />
-                      </button>
-                    </div>
-                    <span className="text-[10px] text-white/20 font-mono hidden md:block">03:45</span>
-                    <Play size={18} className={cn("transition-all", isActive ? "text-purple-400 opacity-100" : "opacity-0 group-hover:opacity-100 text-purple-400")} />
+                  <div className="flex-shrink-0 flex items-center gap-3 ml-auto">
+                    <span className="text-[10px] text-white/20 font-mono shrink-0 w-10 text-right">
+                      {song.duration ? `${Math.floor(song.duration / 60)}:${(song.duration % 60).toString().padStart(2, '0')}` : "03:45"}
+                    </span>
+                    
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setSelectedSong(song); }}
+                      className="text-white/40 hover:text-white transition-all"
+                      title="Add to Playlist"
+                    >
+                      <ListPlus size={16} />
+                    </button>
+                    <LikeButton targetId={song.id} type="song" song={song} size={16} className="transition-all flex" />
+                    <Link 
+                      to={`/song/${song.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-white/40 hover:text-white transition-all"
+                      title="View Details"
+                    >
+                      <MoreHorizontal size={16} />
+                    </Link>
                   </div>
                 </motion.div>
               );

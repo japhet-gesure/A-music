@@ -92,20 +92,21 @@ export default function AIPicks() {
                     console.error("Search failed for recommendation", e);
                   }
 
-                  const song: Song = {
-                    id: `ai-${i}`,
-                    title: rec.title,
-                    artist: rec.artist,
+                  const targetIndex = i;
+                  const queue: Song[] = recommendations.slice(0, 5).map((r, idx) => ({
+                    id: `ai-${idx}`,
+                    title: r.title,
+                    artist: r.artist,
                     thumbnail: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&h=300&fit=crop",
                     source: "youtube",
-                    sourceId: sid
-                  };
-                  setSong(song);
+                    sourceId: idx === targetIndex ? sid : ""
+                  }));
+                  setSong(queue[targetIndex], queue);
                 }}
               >
                 <div className="aspect-square bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-2xl mb-4 flex items-center justify-center relative overflow-hidden shadow-inner font-black text-zinc-800 italic select-none">
                   AI
-                  <div className="absolute inset-x-0 bottom-0 py-2 bg-black/60 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-x-0 bottom-0 py-2 bg-black/60 backdrop-blur-md opacity-100 block transition-opacity flex items-center justify-center">
                     <Play size={20} fill="white" className="text-white" />
                   </div>
                   {isActive && (
@@ -122,7 +123,7 @@ export default function AIPicks() {
                 <p className={cn("text-[10px] font-bold uppercase tracking-widest truncate mt-1 transition-colors", isActive ? "text-white/60" : "text-zinc-500")}>{rec.artist}</p>
                 
                 {/* Reason Tooltip on Hover */}
-                <div className="absolute inset-0 bg-black/90 opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-center text-center">
+                <div className="absolute inset-0 bg-black/90 opacity-100 block transition-opacity p-6 flex flex-col justify-center text-center">
                    <Info size={16} className="text-purple-400 mx-auto mb-3" />
                    <p className="text-[9px] font-bold text-white/80 leading-relaxed italic uppercase tracking-tighter">
                      "{rec.reason}"

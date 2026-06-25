@@ -1,0 +1,116 @@
+377:    return currentSong.lyrics
+439:    (currentSong.source === "local" ||
+440:      currentSong.localUrl ||
+441:      currentSong.id.startsWith("local-"))
+465:      const videoId = currentSong.sourceId || currentSong.id;
+474:            const currentLocIdx = currentQueue.findIndex(s => s.id === currentSong.id);
+1166:    if (currentSong.source !== "local" && !currentSong.localUrl) {
+1171:          const track = await getTrack(currentSong.id);
+1173:            console.log(`[MusicPlayer] Offline cached track found for ${currentSong.id}`);
+1202:      currentSong.source === "local" ||
+1203:      !!currentSong.localUrl ||
+1204:      currentSong.id.startsWith("local-");
+1206:      (currentSong.source === "youtube" ||
+1207:        currentSong.source === "cloud" ||
+1208:        currentSong.source === "spotify") &&
+1226:        currentSong.sourceId || currentSong.id,
+1231:        currentSong.source === "spotify" ||
+1236:            params: { q: `${currentSong.title} ${currentSong.artist}` },
+1305:          (currentSong.source === "local" ||
+1306:            currentSong.localUrl ||
+1307:            currentSong.id.startsWith("local-"))
+1357:            (currentSong.source === "local" ||
+1358:              currentSong.localUrl ||
+1359:              currentSong.id.startsWith("local-"))
+1437:      lastSongRef.current.id !== currentSong.id &&
+1494:          title: decodeHtmlEntities(currentSong.title),
+1495:          artist: decodeHtmlEntities(currentSong.artist || "Unknown Artist"),
+1496:          album: decodeHtmlEntities(currentSong.album || "Unknown Album"),
+1499:              src: currentSong.thumbnail || "/logo.png",
+1673:        lastSongIdRef.current !== currentSong.id;
+1677:        setProgress(0, currentSong.duration || 215);
+1681:      if (!currentSong.lyrics || currentSong.lyrics.length === 0) {
+1682:        autoFetchLyrics(currentSong.id, currentSong.artist, currentSong.title);
+1689:        (!currentSong.thumbnail?.includes("spotify.com") &&
+1690:          !currentSong.thumbnail?.includes("scdn.co") &&
+1691:          !currentSong.duration)
+1693:        searchSpotifyTrack(currentSong.title, currentSong.artist).then(
+1696:              updateSongMetadata(currentSong.id, {
+1707:      lastSongIdRef.current = currentSong.id;
+2080:                    lowDataMode && currentSong.thumbnail
+2081:                      ? currentSong.thumbnail.replace("h=300", "h=50")
+2082:                      : currentSong.thumbnail || undefined
+2084:                  alt={currentSong.title}
+2131:                      {currentSong.title || 'Loading...'}
+2138:                        {currentSong.artist || 'Loading...'}
+2143:                    targetId={currentSong.id}
+2152:                    {currentSong.source}
+2333:                        (!currentSong.lyrics || currentSong.lyrics.length === 0)
+2336:                          currentSong.id,
+2337:                          currentSong.artist,
+2338:                          currentSong.title,
+2454:                                  currentSong.sourceId || currentSong.id,
+2456:                                src={`https://www.youtube.com/embed/${extractYoutubeVideoIdFromString(currentSong.sourceId || currentSong.id)}?autoplay=${isPlaying ? 1 : 0}&controls=0&mute=${volume > 0 ? 0 : 1}&playsinline=1&enablejsapi=1&start=${iframeStartVal}&rel=0&showinfo=0&modestbranding=1`}
+2511:                              ? decodeHtmlEntities(currentSong.title)
+2738:                                    (!currentSong.lyrics ||
+2739:                                      currentSong.lyrics.length === 0)
+2742:                                      currentSong.id,
+2743:                                      currentSong.artist,
+2744:                                      currentSong.title,
+2935:                        lyrics={currentSong.lyrics || []}
+3070:                            src={`https://www.youtube.com/embed/${resolvedYoutubeId || extractYoutubeVideoIdFromString(currentSong.sourceId || currentSong.id)}?autoplay=1&controls=1&rel=0&showinfo=0&modestbranding=1&origin=${window.location.origin}`}
+3254:                    lowDataMode && currentSong.thumbnail
+3255:                      ? currentSong.thumbnail.replace("h=300", "h=50")
+3256:                      : currentSong.thumbnail || undefined
+3258:                  alt={currentSong.title}
+3279:                    text={currentSong.title || 'Loading...'} 
+3285:                      {currentSong.source}
+3297:                    {currentSong.artist || 'Loading...'}
+3305:                      targetId={currentSong.id}
+3783:                        (!currentSong.lyrics || currentSong.lyrics.length === 0)
+3786:                          currentSong.id,
+3787:                          currentSong.artist,
+3788:                          currentSong.title,
+3840:                  {currentSong.thumbnail ? (
+3842:                      src={currentSong.thumbnail}
+3844:                      alt={currentSong.title}
+3852:                    text={currentSong.title || 'Loading...'} 
+3856:                  <span className="text-[11px] text-neutral-400 mt-0.5 truncate leading-tight w-full flex-grow">{currentSong.artist || 'Loading...'}</span>
+3965:                <LikeButton targetId={currentSong.id} type="song" size={20} className="text-white/50 hover:text-white" />
+3999:                          src={currentSong.thumbnail || undefined}
+4001:                          alt={currentSong.title}
+4008:                            {currentSong.title || 'Loading...'}
+4017:                            {currentSong.artist || 'Loading...'}
+4353:                                  (!currentSong.lyrics ||
+4354:                                    currentSong.lyrics.length === 0)
+4357:                                    currentSong.id,
+4358:                                    currentSong.artist,
+4359:                                    currentSong.title,
+4448:                        src={currentSong.thumbnail || undefined}
+4508:                                    currentSong.sourceId || currentSong.id,
+4510:                                  src={`https://www.youtube.com/embed/${extractYoutubeVideoIdFromString(currentSong.sourceId || currentSong.id)}?autoplay=${isPlaying ? 1 : 0}&controls=0&mute=${volume > 0 ? 0 : 1}&playsinline=1&enablejsapi=1&start=${iframeStartVal}&rel=0&showinfo=0&modestbranding=1`}
+4555:                              src={currentSong.thumbnail || undefined}
+4557:                              alt={currentSong.title}
+4573:                                  ? decodeHtmlEntities(currentSong.title)
+4584:                                  {currentSong.artist || 'Loading...'}
+4587:                                  targetId={currentSong.id}
+4609:                                      currentSong.sourceId || currentSong.id,
+4821:                                      (!currentSong.lyrics ||
+4822:                                        currentSong.lyrics.length === 0)
+4825:                                        currentSong.id,
+4826:                                        currentSong.artist,
+4827:                                        currentSong.title,
+5018:                              src={currentSong.thumbnail || undefined}
+5019:                              alt={currentSong.title}
+5031:                                {currentSong.title || 'Loading...'}
+5037:                                {currentSong.artist || 'Loading...'}
+5103:                                  currentSong.source === "youtube"
+5105:                                    : currentSong.source === "spotify"
+5113:                                    currentSong.source === "youtube" ||
+5114:                                      currentSong.source === "spotify"
+5119:                                  {currentSong.source === "youtube"
+5121:                                    : currentSong.source === "spotify"
+5123:                                      : `${currentSong.source} SIGNAL`}
+5126:                              {currentSong.duration && (
+5129:                                    {formatTime(currentSong.duration)}
+5463:            artistName={currentSong.artist || 'Loading...'}

@@ -11,7 +11,7 @@ import axios from "axios";
 export default function Explore() {
   const [trending, setTrending] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const { setSong, currentSong, isPlaying, togglePlay } = usePlayerStore();
 
   useEffect(() => {
@@ -37,10 +37,10 @@ export default function Explore() {
   return (
     <div className="space-y-12">
       <AnimatePresence>
-        {selectedSongId && (
+        {selectedSong && (
           <AddToPlaylistModal 
-            songId={selectedSongId} 
-            onClose={() => setSelectedSongId(null)} 
+            song={selectedSong} 
+            onClose={() => setSelectedSong(null)} 
           />
         )}
       </AnimatePresence>
@@ -101,7 +101,7 @@ export default function Explore() {
                     />
                     <div className={cn(
                       "absolute inset-0 bg-black/60 flex items-center justify-center transition-all duration-300",
-                      isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      isActive ? "opacity-100" : "opacity-100 block"
                     )}>
                       {isActive && isPlaying ? (
                         <div className="flex items-end gap-1 h-12">
@@ -128,15 +128,15 @@ export default function Explore() {
                       <Link 
                         to={`/song/${song.id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="p-2 rounded-full bg-white/5 text-white/20 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all font-black"
+                        className="p-2 rounded-full bg-white/5 text-white/20 hover:text-white hover:bg-white/10 opacity-100 block transition-all font-black"
                         title="View Details"
                       >
                         <Info size={18} />
                       </Link>
-                      <LikeButton targetId={song.id} type="song" size={18} className="p-2 opacity-0 group-hover:opacity-100 transition-all" />
+                      <LikeButton targetId={song.id} type="song" size={18} className="p-2 opacity-100 block transition-all" />
                       <button 
-                        onClick={() => setSelectedSongId(song.id)}
-                        className="p-2 rounded-full bg-white/5 text-white/20 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all font-black"
+                        onClick={() => setSelectedSong(song)}
+                        className="p-2 rounded-full bg-white/5 text-white/20 hover:text-white hover:bg-white/10 opacity-100 block transition-all font-black"
                         title="Add to Playlist"
                       >
                         <ListPlus size={20} />
@@ -150,7 +150,7 @@ export default function Explore() {
                          <Play size={8} fill="currentColor" /> YouTube
                        </div>
                        <span className="text-[10px] font-mono text-white/20">
-                          {song.duration ? `${Math.floor(song.duration / 60)}:${(song.duration % 60).toString().padStart(2, '0')}` : "LIVE"}
+                          {song.duration ? `${Math.floor(song.duration / 60)}:${(song.duration % 60).toString().padStart(2, '0')}` : (/^[a-zA-Z0-9_-]{11}$/.test(song.sourceId || song.id) ? "TRACK" : "LIVE")}
                        </span>
                     </div>
                     <span className="text-[10px] font-bold text-white/10 italic">#TRENDING{index + 1}</span>

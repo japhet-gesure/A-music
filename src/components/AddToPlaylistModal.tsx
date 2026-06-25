@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
-import { collection, query, where, getDocs, updateDoc, doc, arrayUnion, serverTimestamp } from "firebase/firestore";
-import { db, auth } from "../lib/firebase";
 import { X, Plus, Music, Check } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../lib/utils";
+import { safeLocalStorage } from "../lib/safeStorage";
 
 interface AddToPlaylistModalProps {
-  songId: string;
+  song: any;
   onClose: () => void;
 }
 
-export function AddToPlaylistModal({ songId, onClose }: AddToPlaylistModalProps) {
+export function AddToPlaylistModal({ song, onClose }: AddToPlaylistModalProps) {
   const [playlists, setPlaylists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState<string | null>(null);
@@ -18,10 +17,14 @@ export function AddToPlaylistModal({ songId, onClose }: AddToPlaylistModalProps)
 
   useEffect(() => {
     async function fetchPlaylists() {
-      if (!auth.currentUser) return;
-      const q = query(collection(db, "playlists"), where("ownerId", "==", auth.currentUser.uid));
-      const snapshot = await getDocs(q);
-      setPlaylists(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      try {
+        const saved = safeLocalStorage.getItem('music_playlists');
+        if (saved) {
+          setPlaylists(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error(e);
+      }
       setLoading(false);
     }
     fetchPlaylists();
@@ -30,10 +33,36 @@ export function AddToPlaylistModal({ songId, onClose }: AddToPlaylistModalProps)
   const handleAdd = async (playlistId: string) => {
     setAddingId(playlistId);
     try {
-      await updateDoc(doc(db, "playlists", playlistId), {
-        songIds: arrayUnion(songId),
-        updatedAt: serverTimestamp()
-      });
+      const saved = safeLocalStorage.getItem('music_playlists');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const updatedList = parsed.map((p: any) => {
+          if (p.id === playlistId) {
+            const trackPayload = {
+              id: song.id,
+              title: song.title,
+              artist: song.artist,
+              albumArt: song.thumbnail || song.albumArt || "",
+              duration: song.duration || 0
+            };
+            
+            // Optionally, avoid duplicates
+            const currentTracks = p.tracks || [];
+            if (!currentTracks.some((t: any) => t.id === trackPayload.id)) {
+              currentTracks.push(trackPayload);
+            }
+
+            return {
+              ...p,
+              songIds: Array.from(new Set([...(p.songIds || []), song.id])),
+              tracks: currentTracks
+            };
+          }
+          return p;
+        });
+        safeLocalStorage.setItem('music_playlists', JSON.stringify(updatedList));
+        setPlaylists(updatedList);
+      }
       setSuccessId(playlistId);
       setTimeout(() => {
         onClose();
@@ -46,7 +75,7 @@ export function AddToPlaylistModal({ songId, onClose }: AddToPlaylistModalProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-6">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}

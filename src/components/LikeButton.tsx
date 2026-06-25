@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import { useLikeStore } from "../store/useLikeStore";
+import { usePlayerStore, Song } from "../store/usePlayerStore";
 import { cn } from "../lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import React from "react";
@@ -7,16 +8,41 @@ import React from "react";
 interface LikeButtonProps {
   targetId: string;
   type: "song" | "playlist";
+  song?: Song;
   size?: number;
   className?: string;
 }
 
-export function LikeButton({ targetId, type, size = 18, className }: LikeButtonProps) {
+export function LikeButton({ targetId, type, song: propSong, size = 18, className }: LikeButtonProps) {
   const { likedSongs, likedPlaylists, toggleLike } = useLikeStore();
   const isLiked = type === "song" ? likedSongs.has(targetId) : likedPlaylists.has(targetId);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    if (type === "song") {
+      const playerStore = usePlayerStore.getState();
+      const song = propSong || 
+                   playerStore.queue.find(s => s.id === targetId) || 
+                   playerStore.recentlyPlayed.find(s => s.id === targetId) || 
+                   (playerStore.currentSong?.id === targetId ? playerStore.currentSong : null) ||
+                   playerStore.likedSongs.find(s => s.id === targetId);
+
+      if (song) {
+        playerStore.toggleLikeSong(song);
+      } else {
+        // Fallback placeholder song if metadata cannot be resolved immediately to avoid state loss
+        playerStore.toggleLikeSong({
+          id: targetId,
+          title: "Unknown Track",
+          artist: "Unknown Artist",
+          thumbnail: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100&h=100&fit=crop",
+          source: "cloud",
+          sourceId: targetId
+        });
+      }
+    }
+
     toggleLike(targetId, type);
   };
 

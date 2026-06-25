@@ -29,7 +29,7 @@ service cloud.firestore {
 
     function isValidPlaylist(data) {
       return data.keys().hasAll(['id', 'name', 'ownerId']) &&
-             data.id.size() <= 128 &&
+             data.id is string && data.id.size() <= 128 &&
              data.name is string && data.name.size() <= 100 &&
              data.ownerId == request.auth.uid;
     }
@@ -84,11 +84,16 @@ service cloud.firestore {
     // PLAYLISTS
     // ---------------------------------------------------------
     match /playlists/{playlistId} {
-      allow read: if isSignedIn() && (existing().isPublic == true || existing().ownerId == request.auth.uid || request.auth.uid in existing().get('memberIds', []));
+      allow read: if isSignedIn() && (
+        resource == null ||
+        resource.data.get('isPublic', false) == true || 
+        resource.data.ownerId == request.auth.uid || 
+        (resource.data.keys().hasAll(['memberIds']) && request.auth.uid in resource.data.get('memberIds', []))
+      );
       allow create: if isSignedIn() && isValidPlaylist(incoming()) && isValidId(playlistId);
       allow update: if isSignedIn() && (
-        (existing().ownerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'isPublic', 'collaborative', 'memberIds', 'songIds'])) ||
-        ((existing().collaborative == true || request.auth.uid in existing().get('memberIds', [])) && incoming().diff(existing()).affectedKeys().hasOnly(['songIds']))
+        (existing().ownerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'isPublic', 'collaborative', 'memberIds', 'songIds', 'updatedAt'])) ||
+        ((existing().collaborative == true || request.auth.uid in existing().get('memberIds', [])) && incoming().diff(existing()).affectedKeys().hasOnly(['songIds', 'updatedAt']))
       );
       allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
     }

@@ -5,13 +5,15 @@ import {
   Smile, CloudRain, Wind, Zap, Moon, Heart, Coffee, 
   Flame, Sun, Waves, Ghost, Headphones, Info, Calendar, Disc, X, Star
 } from "lucide-react";
+import { safeLocalStorage } from "../lib/safeStorage";
+
+const localStorage = safeLocalStorage;
 import { usePlayerStore, Song } from "../store/usePlayerStore";
 import { LikeButton } from "./LikeButton";
 import { motion, AnimatePresence } from "motion/react";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
 import { cn } from "../lib/utils";
 import axios from "axios";
-import { GoogleGenAI, Type } from "@google/genai";
 import { fetchArtwork } from "../services/artworkService";
 
 const MOODS = [
@@ -111,7 +113,7 @@ export default function AIVibeSearch() {
   const [loading, setLoading] = useState(false);
   const [activeMood, setActiveMood] = useState<string | null>(null);
   const { setSong, currentSong, isPlaying, togglePlay } = usePlayerStore();
-  const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [detailedSong, setDetailedSong] = useState<any | null>(null);
   const [headerBg, setHeaderBg] = useState<string | null>("https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=1200");
   const [favoriteMoods, setFavoriteMoods] = useState<string[]>(() => {
@@ -138,38 +140,18 @@ export default function AIVibeSearch() {
     return 0;
   });
 
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   const handleVibeSearch = async (inputPrompt: string) => {
     const finalPrompt = inputPrompt.trim();
     if (!finalPrompt) return;
 
     setLoading(true);
+    setErrorStatus(null);
     setPrompt(finalPrompt);
     try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Recommend music based on this specific emotion or mood: "${finalPrompt}". If it's a genre or scenario, find songs that embody the emotional core of that experience.`,
-        config: {
-          systemInstruction: "You are an elite music curator specializing in emotional resonance. Suggest 8 real songs that perfectly capture the user's requested mood. Ensure a mix of well-known and deep cuts. Return a JSON array of objects with 'title', 'artist', 'album', and 'releaseDate' keys.",
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                title: { type: Type.STRING },
-                artist: { type: Type.STRING },
-                album: { type: Type.STRING },
-                releaseDate: { type: Type.STRING },
-              },
-              required: ["title", "artist", "album", "releaseDate"],
-            },
-          },
-        },
-      });
-
-      const recs = JSON.parse(response.text);
+      const response = await axios.post("/api/vibe-search", { prompt: finalPrompt });
+      const recs = response.data;
       
       if (recs && recs.length > 0) {
         fetchArtwork(recs[0].title, recs[0].artist).then(art => {
@@ -212,8 +194,14 @@ export default function AIVibeSearch() {
           setRecommendations(prev => prev.map(r => r.id === song.id ? { ...r, pending: false } : r));
         }
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Vibe search failed", err);
+      if (err.message?.includes("quota") || err.message?.includes("RESOURCE_EXHAUSTED")) {
+        setErrorStatus("Vibe Engine at capacity. Using fallback...");
+        // Fallback: simple text search for similar songs or just show empty with message
+      } else {
+        setErrorStatus("Vibe Engine encountered a signal interruption.");
+      }
       setRecommendations([]);
     } finally {
       setLoading(false);
@@ -281,10 +269,10 @@ export default function AIVibeSearch() {
   return (
     <div className="space-y-12 pb-20">
       <AnimatePresence>
-        {selectedSongId && (
+        {selectedSong && (
           <AddToPlaylistModal 
-            songId={selectedSongId} 
-            onClose={() => setSelectedSongId(null)} 
+            song={selectedSong} 
+            onClose={() => setSelectedSong(null)} 
           />
         )}
         {detailedSong && (
@@ -358,7 +346,7 @@ export default function AIVibeSearch() {
                   </button>
                   <button
                     onClick={() => {
-                      setSelectedSongId(detailedSong.id);
+                      setSelectedSong(detailedSong);
                       setDetailedSong(null);
                     }}
                     className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-white/40 hover:text-white transition-all"
@@ -372,7 +360,10 @@ export default function AIVibeSearch() {
         )}
       </AnimatePresence>
 
-      <header className="relative py-20 px-12 rounded-[40px] overflow-hidden group">
+      <header className={cn(
+        "relative rounded-[40px] overflow-hidden group transition-all duration-700",
+        "py-12 px-6 sm:py-20 sm:px-12", // Responsive padding
+      )}>
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-800 opacity-90 group-hover:scale-105 transition-transform duration-1000" />
         {headerBg ? (
           <div 
@@ -387,29 +378,43 @@ export default function AIVibeSearch() {
           <motion.div 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-purple-200 text-xs font-bold uppercase tracking-widest mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-purple-200 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-6"
           >
-            <Sparkles size={14} />
+            <Sparkles size={6} />
             <span>AI Vibes Engine v3.0</span>
           </motion.div>
-          <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter text-white leading-tight mb-8 uppercase">
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-black italic tracking-tighter text-white leading-tight mb-8 uppercase px-2">
             Search by <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-blue-300">Emotion</span>
           </h1>
+
+          <AnimatePresence>
+            {errorStatus && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                className="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 rounded-3xl backdrop-blur-xl flex items-center justify-center gap-3 text-rose-400 font-bold uppercase tracking-widest text-xs"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                {errorStatus}
+              </motion.div>
+            )}
+          </AnimatePresence>
           
-          <form onSubmit={(e) => { e.preventDefault(); handleVibeSearch(prompt); }} className="relative group max-w-2xl mx-auto mb-16">
+          <form onSubmit={(e) => { e.preventDefault(); handleVibeSearch(prompt); }} className="relative group max-w-2xl mx-auto mb-12 sm:mb-16 px-2">
             <input 
               type="text"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="How are you feeling right now?"
-              className="w-full bg-gradient-to-br from-white/[0.12] to-white/[0.04] backdrop-blur-xl border-2 border-white/10 rounded-full px-8 py-7 pr-20 text-white placeholder:text-white/30 focus:outline-none focus:border-dashed focus:border-purple-500/50 transition-all text-xl font-medium shadow-2xl"
+              placeholder="How are you feeling?"
+              className="w-full bg-gradient-to-br from-white/[0.12] to-white/[0.04] backdrop-blur-xl border-2 border-white/10 rounded-full px-6 py-5 sm:px-8 sm:py-7 pr-20 text-white placeholder:text-white/30 focus:outline-none focus:border-purple-500/50 transition-all text-lg sm:text-xl font-medium shadow-2xl"
             />
             <button 
               type="submit"
               disabled={loading}
-              className="absolute right-3 top-3 bottom-3 w-16 rounded-full bg-white text-black flex items-center justify-center hover:bg-zinc-200 transition-all disabled:opacity-50 shadow-lg active:scale-90"
+              className="absolute right-5 top-3 bottom-3 w-12 sm:w-16 rounded-full bg-white text-black flex items-center justify-center hover:bg-zinc-200 transition-all disabled:opacity-50 shadow-lg active:scale-90"
             >
-              {loading ? <Loader2 size={24} className="animate-spin" /> : <Search size={24} />}
+              {loading ? <Loader2 size={12} className="animate-spin" /> : <Search className="w-2.5 h-2.5 sm:w-5 sm:h-5 md:w-6 md:h-6" />}
             </button>
           </form>
 
@@ -440,10 +445,10 @@ export default function AIVibeSearch() {
                   </button>
 
                   <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center mb-1 transition-all",
+                    "w-6 h-6 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center mb-1 transition-all",
                     activeMood === mood.id ? "bg-white/20 text-white" : "bg-white/5 text-white/40 group-hover:text-white"
                   )}>
-                    <mood.icon size={24} />
+                    <mood.icon className="w-2.5 h-2.5 sm:w-6 sm:h-6" />
                   </div>
                   <span className={cn(
                     "text-[10px] font-black uppercase tracking-[0.2em]",
@@ -503,6 +508,11 @@ export default function AIVibeSearch() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
+                    whileHover={{ 
+                      y: -4, 
+                      scale: 1.01,
+                      boxShadow: "0 20px 25px -5px rgba(0,0,0,0.4), 0 10px 10px -5px rgba(0,0,0,0.4)"
+                    }}
                     onClick={() => playSong(song, i)}
                     className={cn(
                       "group relative flex items-center justify-between p-4 rounded-3xl transition-all cursor-pointer border",
@@ -520,7 +530,7 @@ export default function AIVibeSearch() {
                       />
                       {isActive && <div className="absolute inset-0 bg-purple-500/20 backdrop-blur-[2px]" />}
                       <div className={cn(
-                        "absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity",
+                        "absolute inset-0 flex items-center justify-center bg-black/40 opacity-100 block transition-opacity",
                         isActive && "opacity-100"
                       )}>
                         {isActive && isPlaying ? (
@@ -544,24 +554,22 @@ export default function AIVibeSearch() {
                   </div>
 
                   <div className="flex items-center gap-4 lg:gap-8 min-w-fit">
-                    <div className="hidden sm:flex items-center gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300 ease-out">
+                    <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:translate-x-4 sm:group-hover:translate-x-0 transition-all duration-300 ease-out">
                        <button 
                          onClick={(e) => { e.stopPropagation(); setDetailedSong(song); }}
-                         className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/10 group/btn"
+                         className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-xl bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/10 group/btn"
                        >
-                         <Info size={16} />
+                         <Info size={8} />
                          <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block overflow-hidden max-w-0 group-hover/btn:max-w-[100px] transition-all duration-500">Details</span>
                        </button>
                        
-                       <div className="h-4 w-[1px] bg-white/10 mx-1" />
-
-                       <LikeButton targetId={song.id} type="song" size={16} className="p-2 hover:bg-white/5 rounded-xl transition-all" />
+                       <LikeButton targetId={song.id} type="song" size={8} className="p-2 hover:bg-white/5 rounded-xl transition-all" />
                        
                        <button 
-                         onClick={(e) => { e.stopPropagation(); setSelectedSongId(song.id); }}
-                         className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 text-white/40 hover:text-cyan-400 hover:bg-cyan-400/10 transition-all border border-transparent hover:border-cyan-400/20 group/btn"
+                         onClick={(e) => { e.stopPropagation(); setSelectedSong(song); }}
+                         className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-xl bg-white/5 text-white/40 hover:text-cyan-400 hover:bg-cyan-400/10 transition-all border border-transparent hover:border-cyan-400/20 group/btn"
                        >
-                         <ListPlus size={16} />
+                         <ListPlus size={8} />
                          <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block overflow-hidden max-w-0 group-hover/btn:max-w-[100px] transition-all duration-500">Collect</span>
                        </button>
                     </div>

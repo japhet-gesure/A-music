@@ -216,7 +216,7 @@ export function LyricsEditor({ onClose }: LyricsEditorProps) {
                 onChange={(e) => updateLineText(index, e.target.value)}
                 placeholder="Enter lyric line..."
               />
-              <div className="flex items-center opacity-0 group-hover:opacity-100 transition-all">
+              <div className="flex items-center opacity-100 block transition-all">
                 <button 
                   onClick={() => addLine(index)}
                   className="p-2 text-white/20 hover:text-purple-400 transition-all"

@@ -1,6 +1,62 @@
 import { saveTrack, OfflineTrack, deleteTrack, isTrackOffline } from "../lib/offlineStorage";
-import { Song, usePlayerStore } from "../store/usePlayerStore";
+import { Song, usePlayerStore, extractYoutubeVideoIdFromString } from "../store/usePlayerStore";
 import axios from "axios";
+
+async function resolveAudioStreamUrl(videoId: string): Promise<string | null> {
+  const endpoints = [
+    `https://pipedapi.kavin.rocks/streams/${videoId}`,
+    `https://pipedapi.tokhmi.xyz/streams/${videoId}`,
+    `https://pipedapi.river.rocks/streams/${videoId}`
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.audioStreams && data.audioStreams.length > 0) {
+          const audioStreams = [...data.audioStreams].sort((a: any, b: any) => (b.bitrate || 0) - (a.bitrate || 0));
+          const bestStream = audioStreams[0].url;
+          if (bestStream) {
+            return bestStream;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`[Download Stream Resolver] Failed resolving from ${url}:`, err);
+    }
+  }
+
+  const invidiousInstances = [
+    `https://vid.priv.au/api/v1/videos/${videoId}`,
+    `https://invidious.flokinet.to/api/v1/videos/${videoId}`,
+    `https://inv.tux.im/api/v1/videos/${videoId}`
+  ];
+
+  for (const url of invidiousInstances) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.adaptiveFormats && data.adaptiveFormats.length > 0) {
+          const audioFormats = data.adaptiveFormats.filter((f: any) => 
+            f.type?.includes("audio") || (!f.videoCodec && f.audioCodec)
+          );
+          if (audioFormats.length > 0) {
+            const bestStream = audioFormats[0].url;
+            if (bestStream) {
+              return bestStream;
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`[Download Stream Resolver] Failed resolving from Invidious ${url}:`, err);
+    }
+  }
+
+  return null;
+}
 
 export async function downloadSong(song: Song): Promise<void> {
   const { setDownloadStatus, removeDownload } = usePlayerStore.getState();
@@ -10,13 +66,43 @@ export async function downloadSong(song: Song): Promise<void> {
      return;
   }
 
+  // Request Persistent Storage to prevent deletion
+  try {
+    if (navigator.storage && navigator.storage.persist) {
+      const isPersisted = await navigator.storage.persist();
+      console.log(`[Storage] Persistent storage granted: ${isPersisted}`);
+      if (navigator.storage.estimate) {
+        const estimate = await navigator.storage.estimate();
+        console.log(`[Storage] Storage quota estimate: usage=${estimate.usage}, quota=${estimate.quota}`);
+      }
+    }
+  } catch (err) {
+    console.warn("Persistent storage request failed", err);
+  }
+
   setDownloadStatus(song.id, { progress: 0, status: "downloading", song });
 
   let blob: Blob | null = null;
   
   try {
-    if (song.localUrl) {
-      const response = await axios.get(song.localUrl, {
+    let downloadUrl = song.localUrl;
+    
+    // If not local, resolve the audio stream
+    if (!downloadUrl) {
+      const videoId = extractYoutubeVideoIdFromString(song.sourceId || song.id);
+      if (videoId) {
+        console.log(`[Download] Extracting audio stream for video: ${videoId}`);
+        const streamUrl = await resolveAudioStreamUrl(videoId);
+        if (streamUrl) {
+          downloadUrl = streamUrl;
+        } else {
+          throw new Error("Failed to resolve audio stream URL from upstream providers.");
+        }
+      }
+    }
+
+    if (downloadUrl) {
+      const response = await axios.get(downloadUrl, {
         responseType: 'blob',
         onDownloadProgress: (progressEvent) => {
           if (progressEvent.total) {
@@ -26,6 +112,8 @@ export async function downloadSong(song: Song): Promise<void> {
         },
       });
       blob = response.data;
+    } else {
+      throw new Error("No download URL available.");
     }
   } catch (err: any) {
     console.warn("Could not fetch blob for offline storage", err);
@@ -42,7 +130,7 @@ export async function downloadSong(song: Song): Promise<void> {
       album: song.album,
       duration: song.duration || 0,
       thumbnail: song.thumbnail,
-      source: song.source,
+      source: "local", // Bypasses youtube iframe player, flags as offline/local
       lyrics: song.lyrics || []
     }
   };

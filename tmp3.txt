@@ -1,0 +1,58 @@
+122:    return () => {
+130:    return () => {
+141:  return <audio ref={ref} src={src} crossOrigin="anonymous" />;
+157:    return () => window.removeEventListener('resize', checkOverflow);
+160:  return (
+179:  return text
+199:  return text
+207:          return String.fromCodePoint(code - 65 + 0x1d5d4);
+211:          return String.fromCodePoint(code - 97 + 0x1d5ee);
+216:          return String.fromCodePoint(code - 65 + 0x1d4d0);
+220:          return String.fromCodePoint(code - 97 + 0x1d4ea);
+241:        return (
+250:          return String.fromCharCode(code + 65248);
+253:      return char;
+343:    return () => {
+377:    return currentSong.lyrics
+428:    return () => {
+559:    return () => window.removeEventListener("resize", handleResize);
+627:    return () => {
+770:              return bestStream;
+805:                return bestStream;
+819:    return null;
+913:    return () => {
+1183:      return () => {
+1248:      return resolvedId;
+1382:    return () => {
+1400:    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+1457:    return () => {
+1585:    return () => {
+1746:    return () => {
+1918:    return () => {
+1924:    return (
+2015:                        return (
+2963:  return (
+5198:                              return (
+5496:  return (
+5607:      return "text-blue-500";
+5609:      return "text-emerald-500";
+5611:      return "text-orange-500";
+5613:      return "text-rose-500";
+5616:      return "text-purple-500";
+5623:      return "decoration-blue-500";
+5625:      return "decoration-emerald-500";
+5627:      return "decoration-orange-500";
+5629:      return "decoration-rose-500";
+5632:      return "decoration-purple-500";
+5703:    return lyrics.map((line, i) => {
+5715:          return {
+5731:          return w;
+5735:      return {
+5743:    return parsedLyrics.findIndex((line, i) => {
+5744:      return (
+5784:    return () => {
+5832:    return Math.max(0, 1 - distance / (1 / 3));
+5835:  return (
+6335:            return (
+6393:                      return (
+6423:                    return (

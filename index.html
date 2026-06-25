@@ -4,6 +4,63 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Google AI Studio App</title>
+    <script>
+      // Early cross-origin and third-party error suppression for the sandbox
+      (function() {
+        var suppress = function(msg, url) {
+          var msgStr = String(msg || "").toLowerCase();
+          var urlStr = String(url || "").toLowerCase();
+          return msgStr.indexOf("script error") > -1 || 
+                 msgStr.indexOf("cross-origin") > -1 ||
+                 !url || 
+                 urlStr.indexOf("youtube.com") > -1 || 
+                 urlStr.indexOf("ytimg.com") > -1 || 
+                 urlStr.indexOf("doubleclick.net") > -1 || 
+                 urlStr.indexOf("google") > -1 ||
+                 urlStr.indexOf("ggpht.com") > -1 ||
+                 urlStr.indexOf("gstatic.com") > -1;
+        };
+
+        window.addEventListener("error", function(event) {
+          if (suppress(event.message, event.filename)) {
+            console.warn("[Early Sandbox] Suppressed event error:", event.message, "at", event.filename);
+            try {
+              event.preventDefault();
+              event.stopPropagation();
+              event.stopImmediatePropagation();
+            } catch (e) {}
+          }
+        }, true);
+
+        var originalOnerror = window.onerror;
+        window.onerror = function(message, source, lineno, colno, error) {
+          if (suppress(message, source)) {
+            console.warn("[Early Sandbox] Suppressed window.onerror:", message, "from", source);
+            return true;
+          }
+          if (originalOnerror) {
+            return originalOnerror(message, source, lineno, colno, error);
+          }
+          return false;
+        };
+
+        window.addEventListener("unhandledrejection", function(event) {
+          var reasonStr = event.reason ? String(event.reason.message || event.reason).toLowerCase() : "";
+          if (reasonStr.indexOf("youtube") > -1 || 
+              reasonStr.indexOf("yt") > -1 || 
+              reasonStr.indexOf("script error") > -1 || 
+              reasonStr.indexOf("google") > -1 ||
+              reasonStr.indexOf("cross-origin") > -1) {
+            console.warn("[Early Sandbox] Suppressed early unhandled promise rejection:", reasonStr);
+            try {
+              event.preventDefault();
+              event.stopPropagation();
+              event.stopImmediatePropagation();
+            } catch (e) {}
+          }
+        }, true);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

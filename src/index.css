@@ -12,6 +12,11 @@
 
 body {
   @apply bg-[#0A0A0C] text-[#E0E0E0] font-sans selection:bg-purple-500/30 selection:text-white antialiased overflow-hidden;
+  touch-action: manipulation;
+}
+
+button, a, input, select, textarea {
+  touch-action: manipulation;
 }
 
 /* Custom scrollbar */
@@ -49,4 +54,65 @@ body {
 #app-shell {
   height: 100vh;
   display: flex;
+}
+
+@keyframes progress-bg-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(168, 85, 247, 0.4));
+    opacity: 0.9;
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.95)) drop-shadow(0 0 4px rgba(236, 72, 153, 0.6));
+    opacity: 1;
+  }
+}
+
+@keyframes progress-handle-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 6px rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    transform: scale(1.25);
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.95), 0 0 8px rgba(236, 72, 153, 0.5);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-gpu {
+  from {
+    transform: rotate(0deg) translate3d(0, 0, 0);
+  }
+  to {
+    transform: rotate(360deg) translate3d(0, 0, 0);
+  }
+}
+
+.playing-progress-bg {
+  animation: progress-bg-pulse 2s infinite ease-in-out;
+}
+
+.playing-progress-handle {
+  animation: progress-handle-pulse 1.8s infinite ease-in-out;
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee-scroll {
+  animation: marquee-scroll 10s linear infinite;
+}
+
+.hidden-player {
+  display: none !important;
 }
