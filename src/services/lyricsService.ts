@@ -76,7 +76,7 @@ export async function fetchLyrics(artist: string, title: string, duration?: numb
     try {
       const response = await axios.get("/api/lyrics", {
         params: { artist, title, duration },
-        timeout: 8000
+        timeout: 15000
       });
       if (response.data && response.data.lyrics) {
         lyricsData = response.data;
@@ -85,7 +85,7 @@ export async function fetchLyrics(artist: string, title: string, duration?: numb
       if (error.response?.status === 404) {
         console.info(`[Lyrics] No lyrics found (404) for: ${artist} - ${title}`);
       } else {
-        console.error("Failed to fetch lyrics from backend:", error.message);
+        console.warn("Failed to fetch lyrics from backend:", error.message);
       }
     }
   }

@@ -565,7 +565,7 @@ async function startServer() {
               track_name: titleClean,
               duration: durationVal,
             },
-            timeout: 3000,
+            timeout: 1500,
             headers: {
               "User-Agent": "MusicApp/1.0 (https://ais-build.app)",
             },
@@ -600,7 +600,7 @@ async function startServer() {
             "https://lrclib.net/api/search",
             {
               params: { q },
-              timeout: 3000,
+              timeout: 1500,
               headers: {
                 "User-Agent": "MusicApp/1.0 (https://ais-build.app)",
               },
@@ -651,9 +651,8 @@ async function startServer() {
 
           let response;
           const fallbackModels = [
-            "gemini-3.5-flash",
             "gemini-3.1-flash-lite",
-            "gemini-flash-latest",
+            "gemini-3.1-pro-preview",
           ];
 
           for (const model of fallbackModels) {
@@ -722,7 +721,7 @@ No conversational filler.`,
         error.message ||
         "Lyrics service error";
 
-      console.error(`[Lyrics Error] Status: ${status}, Message: ${message}`);
+      console.warn(`[Lyrics Error] Status: ${status}, Message: ${message}`);
 
       if (status === 404) {
         return res.status(404).json({ error: "Lyrics not found upstream" });

@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Play, ListPlus, Download, CheckCircle2, Info } from "lucide-react";
+import { Play, ListPlus, Download, CheckCircle2, Info, MoreHorizontal } from "lucide-react";
 import { usePlayerStore, Song } from "../store/usePlayerStore";
 import { Link } from "react-router-dom";
 import { LikeButton } from "./LikeButton";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../lib/utils";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
+import { TrackOptionsMenu } from "./TrackOptionsMenu";
+import { TrackRow } from "./player/TrackRow";
 import { getAllTracks } from "../lib/offlineStorage";
 import { downloadSong, getOfflineStatus } from "../services/downloadService";
 import AIPicks from "./AIPicks";
@@ -20,6 +22,7 @@ const MOCK_SONGS: Song[] = [
 export default function Home() {
   const { setSong, currentSong, isPlaying, togglePlay, recentlyPlayed, downloads } = usePlayerStore();
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [activeMenuSong, setActiveMenuSong] = useState<Song | null>(null);
   const [offlineSongs, setOfflineSongs] = useState<Song[]>([]);
   const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set());
 
@@ -231,93 +234,21 @@ export default function Home() {
                      const isDownloading = downloadingIds.has(song.id);
 
                      return (
-                     <motion.div 
-                        layout
-                        key={`${song.id}-${i}`}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        onClick={() => isActive ? togglePlay() : setSong(song, recentlyPlayed)}
-                        className={cn(
-                          "flex items-center justify-between p-3 rounded-xl transition-all group cursor-pointer border",
-                          isActive ? "bg-white/10 border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.4)]" : "bg-white/5 hover:bg-white/10 border-transparent hover:border-white/5"
-                        )}
-                     >
-                        <div className="flex items-center gap-4 min-w-0">
-                           <div className="w-12 h-12 rounded bg-white/10 overflow-hidden shadow-lg shrink-0 relative">
-                              <img src={song.thumbnail || undefined} alt={song.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                              {isActive && <div className="absolute inset-0 bg-purple-500/20" />}
-                           </div>
-                           <div className="min-w-0 flex-1">
-                              <p className={cn("text-sm font-bold truncate transition-colors", isActive ? "text-purple-400" : "text-white")}>{song.title}</p>
-                              <div className="flex items-center gap-2">
-                                 <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider truncate shrink-0">{song.artist} • {song.source}</p>
-                                 {song.genre && (
-                                   <span className="text-[7px] font-black tracking-widest text-indigo-400/60 uppercase border border-indigo-400/20 px-1 rounded">
-                                     {song.genre}
-                                   </span>
-                                 )}
-                                 {renderStatus(song.id)}
-                              </div>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                           <Link 
-                              to={`/song/${song.id}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="p-2 rounded-xl text-white/20 hover:text-white hover:bg-white/10 opacity-100 block transition-all"
-                              title="View Details"
-                           >
-                              <Info size={16} className="drop-shadow-[0_0_8px_currentColor]" />
-                           </Link>
-                           <LikeButton targetId={song.id} type="song" size={16} className="opacity-100 block transition-all" />
-                           
-                           <button 
-                             onClick={(e) => { 
-                                e.stopPropagation(); 
-                                if (!isDownloaded && !isDownloading) handleDownload(song);
-                             }}
-                             className={cn(
-                               "p-2 rounded-xl transition-all",
-                               isDownloaded ? "text-emerald-400 bg-emerald-500/5 shadow-[0_0_15px_rgba(52,211,153,0.1)]" : "text-white/20 hover:text-white hover:bg-white/10 opacity-100 block"
-                             )}
-                             disabled={isDownloaded || isDownloading}
-                           >
-                              {isDownloading ? (
-                                <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent animate-spin rounded-full" />
-                              ) : isDownloaded ? (
-                                <CheckCircle2 size={16} className="drop-shadow-[0_0_8px_currentColor]" />
-                              ) : (
-                                <Download size={16} className="drop-shadow-[0_0_8px_currentColor]" />
-                              )}
-                           </button>
-
-                           <button 
-                             onClick={(e) => { e.stopPropagation(); setSelectedSong(song); }}
-                             className="p-2 rounded-xl bg-white/5 text-white/20 hover:text-white hover:bg-white/10 opacity-100 block transition-all font-black italic"
-                             title="Add to Playlist"
-                           >
-                              <ListPlus size={16} className="drop-shadow-[0_0_8px_currentColor]" />
-                           </button>
-                           
-                           {isActive && isPlaying ? (
-                              <div className="flex items-end gap-0.5 h-4 ml-4">
-                                 <motion.div animate={{ height: [4, 16, 6, 12, 4] }} transition={{ repeat: Infinity, duration: 0.8 }} className="w-1 bg-purple-500 shadow-[0_0_10px_#A855F7]" />
-                                 <motion.div animate={{ height: [12, 4, 16, 6, 12] }} transition={{ repeat: Infinity, duration: 0.8, delay: 0.2 }} className="w-1 bg-purple-500 shadow-[0_0_10px_#A855F7]" />
-                                 <motion.div animate={{ height: [8, 12, 4, 16, 8] }} transition={{ repeat: Infinity, duration: 0.8, delay: 0.4 }} className="w-1 bg-purple-500 shadow-[0_0_10px_#A855F7]" />
-                              </div>
-                           ) : (
-                              <div className={cn("ml-4 transition-all duration-300", isActive ? "opacity-100 scale-125" : "opacity-100 block scale-100 group-hover:scale-110")}>
-                                 <div className={cn(
-                                   "p-2 rounded-full",
-                                   isActive ? "bg-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)]" : "text-purple-400"
-                                 )}>
-                                   <Play size={16} fill="currentColor" className="ml-0.5" />
-                                 </div>
-                              </div>
-                           )}
-                        </div>
-                     </motion.div>
-                  )})}
+                        <TrackRow 
+                           key={`${song.id}-${i}`}
+                           song={song}
+                           isActive={isActive}
+                           isDownloaded={isDownloaded}
+                           isDownloading={isDownloading}
+                           handleDownload={handleDownload}
+                           setSelectedSong={setSelectedSong}
+                           setSong={setSong}
+                           togglePlay={togglePlay}
+                           recentlyPlayed={recentlyPlayed}
+                           onOptionsMenu={setActiveMenuSong}
+                         />
+                     );
+                  })}
                </div>
             )}
          </section>
@@ -338,6 +269,15 @@ export default function Home() {
 
       {/* AI Recommendations */}
       <AIPicks />
+
+      <AnimatePresence>
+        {activeMenuSong && (
+          <TrackOptionsMenu 
+            track={activeMenuSong}
+            onClose={() => setActiveMenuSong(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Recommended Section */}
       <section>
@@ -415,7 +355,7 @@ export default function Home() {
                       </span>
                     )}
                   </div>
-               </motion.div>
+                </motion.div>
             )})}
          </div>
       </section>

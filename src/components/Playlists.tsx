@@ -28,12 +28,16 @@ export default function Playlists() {
   const [internetResults, setInternetResults] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [activePlaylistForSearch, setActivePlaylistForSearch] = useState<any>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRefMobile = useRef<HTMLDivElement>(null);
+  const menuRefDesktop = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const isOutsideMobile = !menuRefMobile.current || !menuRefMobile.current.contains(event.target as Node);
+      const isOutsideDesktop = !menuRefDesktop.current || !menuRefDesktop.current.contains(event.target as Node);
+      
+      if (isOutsideMobile && isOutsideDesktop) {
         setActiveMenuId(null);
         setMenuView("main");
       }
@@ -299,183 +303,363 @@ export default function Playlists() {
                       
                       <AnimatePresence>
                         {activeMenuId === playlist.id && (
-                          <motion.div
-                            ref={menuRef}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="fixed top-20 bottom-0 left-0 right-0 w-full rounded-t-3xl md:absolute md:top-full md:right-0 md:bottom-auto md:w-56 md:rounded-lg md:shadow-xl md:border md:border-neutral-800 z-[9999] md:z-40 bg-[#18181b] md:bg-neutral-950 border-t border-neutral-800 flex flex-col overflow-hidden"
-                          >
-                            
-                            {/* Header */}
-                            <div className="p-4 border-b border-neutral-800 flex items-center justify-between shrink-0">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center border border-white/5 shadow-inner">
-                                  <Music size={16} className="text-white/50" />
+                          <>
+                            {/* Mobile Bottom Sheet Overlay - Fully isolated from parent hover/pointer constraints */}
+                            <motion.div
+                              ref={menuRefMobile}
+                              initial={{ opacity: 0, y: "100%" }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: "100%" }}
+                              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                              onClick={(e) => e.stopPropagation()}
+                              onMouseEnter={undefined}
+                              onMouseLeave={undefined}
+                              className="block md:hidden fixed bottom-0 left-0 right-0 w-full z-[9999] bg-[#18181b] rounded-t-3xl shadow-2xl pb-4 border-t border-neutral-800 flex flex-col overflow-hidden"
+                              style={{ width: "100vw", maxWidth: "100vw", left: 0, right: 0, bottom: 0 }}
+                            >
+                              {/* Header */}
+                              <div className="p-4 border-b border-neutral-800 flex items-center justify-between shrink-0">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center border border-white/5 shadow-inner">
+                                    <Music size={16} className="text-white/50" />
+                                  </div>
+                                  <div>
+                                    <h3 className="font-bold text-sm text-white truncate max-w-[120px]">{playlist.name}</h3>
+                                    <p className="text-[10px] text-neutral-400 font-medium mt-0.5">{playlist.songIds?.length || 0} Tracks</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <h3 className="font-bold text-sm text-white truncate max-w-[120px]">{playlist.name}</h3>
-                                  <p className="text-[10px] text-neutral-400 font-medium mt-0.5">{playlist.songIds?.length || 0} Tracks</p>
-                                </div>
+                                <button className="p-1.5 text-white/50 hover:text-white rounded-full hover:bg-white/5 transition-colors">
+                                  <Share size={16} />
+                                </button>
                               </div>
-                              <button className="p-1.5 text-white/50 hover:text-white rounded-full hover:bg-white/5 transition-colors">
-                                <Share size={16} />
-                              </button>
-                            </div>
-                            
-                            {/* Actions */}
-                            <div className="py-1 flex flex-col h-full overflow-y-auto scrollbar-thin overscroll-contain pb-12 md:pb-1 md:h-auto md:max-h-60">
-                               {menuView === "main" ? (
-                                <>
-                                  <button 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const songs = getPlayableSongs(playlist);
-                                      if (songs.length > 0) {
-                                        setSong(songs[0], songs);
-                                      }
-                                      setActiveMenuId(null);
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5 transition-colors rounded-none"
-                                  >
-                                    <LucidePlay size={16} className="text-white/70" /> Play
-                                  </button>
-                                  
-                                  <button 
-                                    onClick={(e) => { 
-                                      e.stopPropagation();
-                                      const songs = getPlayableSongs(playlist);
-                                      if (songs.length > 0) {
-                                        if (queue.length === 0) {
+                              
+                              {/* Actions */}
+                              <div className="py-0 flex flex-col h-full overflow-y-auto scrollbar-thin overscroll-contain pb-0">
+                                 {menuView === "main" ? (
+                                  <>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const songs = getPlayableSongs(playlist);
+                                        if (songs.length > 0) {
                                           setSong(songs[0], songs);
-                                        } else {
-                                          const newQueue = [
-                                            ...queue.slice(0, currentIndex + 1),
-                                            ...songs,
-                                            ...queue.slice(currentIndex + 1)
-                                          ];
-                                          setQueue(newQueue);
                                         }
-                                      }
-                                      setActiveMenuId(null); 
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5 transition-colors rounded-none"
-                                  >
-                                    <SkipForward size={16} className="text-white/70" /> Play next
-                                  </button>
-                                  
-                                  <button 
-                                    onClick={(e) => { 
-                                      e.stopPropagation();
-                                      const songs = getPlayableSongs(playlist);
-                                      if (songs.length > 0) {
-                                        if (queue.length === 0) {
-                                          setSong(songs[0], songs);
-                                        } else {
-                                          setQueue([...queue, ...songs]);
+                                        setActiveMenuId(null);
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3.5 text-base font-medium text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-none"
+                                    >
+                                      <LucidePlay size={16} className="text-white/70" /> Play
+                                    </button>
+                                    
+                                    <button 
+                                      onClick={(e) => { 
+                                        e.stopPropagation();
+                                        const songs = getPlayableSongs(playlist);
+                                        if (songs.length > 0) {
+                                          if (queue.length === 0) {
+                                            setSong(songs[0], songs);
+                                          } else {
+                                            const newQueue = [
+                                              ...queue.slice(0, currentIndex + 1),
+                                              ...songs,
+                                              ...queue.slice(currentIndex + 1)
+                                            ];
+                                            setQueue(newQueue);
+                                          }
                                         }
-                                      }
-                                      setActiveMenuId(null); 
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5 transition-colors rounded-none"
-                                  >
-                                    <ListPlus size={16} className="text-white/70" /> Add to queue
-                                  </button>
+                                        setActiveMenuId(null); 
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3.5 text-base font-medium text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-none"
+                                    >
+                                      <SkipForward size={16} className="text-white/70" /> Play next
+                                    </button>
+                                    
+                                    <button 
+                                      onClick={(e) => { 
+                                        e.stopPropagation();
+                                        const songs = getPlayableSongs(playlist);
+                                        if (songs.length > 0) {
+                                          if (queue.length === 0) {
+                                            setSong(songs[0], songs);
+                                          } else {
+                                            setQueue([...queue, ...songs]);
+                                          }
+                                        }
+                                        setActiveMenuId(null); 
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3.5 text-base font-medium text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-none"
+                                    >
+                                      <ListPlus size={16} className="text-white/70" /> Add to queue
+                                    </button>
 
-                                  <div className="h-px bg-white/5 my-1 mx-2" />
+                                    <div className="h-px bg-white/5 my-1 mx-2" />
 
-                                  <button 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setPlaylistToRename(playlist);
-                                      setRenameInput(playlist.name);
-                                      setActiveMenuId(null);
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5 transition-colors rounded-none"
-                                  >
-                                    <Edit2 size={16} className="text-white/70" /> Rename playlist
-                                  </button>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPlaylistToRename(playlist);
+                                        setRenameInput(playlist.name);
+                                        setActiveMenuId(null);
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3.5 text-base font-medium text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-none"
+                                    >
+                                      <Edit2 size={16} className="text-white/70" /> Rename playlist
+                                    </button>
 
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); setMenuView("artwork"); }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5 transition-colors rounded-none"
-                                  >
-                                    <ImageIcon size={16} className="text-white/70" /> Artwork
-                                  </button>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); setMenuView("artwork"); }}
+                                      onMouseEnter={(e) => e.stopPropagation()}
+                                      onMouseLeave={(e) => e.stopPropagation()}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3.5 text-base font-medium text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-none"
+                                    >
+                                      <ImageIcon size={16} className="text-white/70" /> Artwork
+                                    </button>
 
-                                  <button 
-                                    onClick={(e) => { 
-                                      e.stopPropagation(); 
-                                      if ('serviceWorker' in navigator && window.matchMedia('(display-mode: standalone)').matches === false) {
-                                        alert(`To add "${playlist.name}" to your home screen, tap the share icon or menu in your browser and select "Add to Home Screen". The app will open directly to your playlists.`);
-                                      } else {
-                                        alert(`"${playlist.name}" shortcut prepared. Use your browser's "Add to Home Screen" feature.`);
-                                      }
-                                      setActiveMenuId(null); 
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5 transition-colors rounded-none"
-                                  >
-                                    <Smartphone size={16} className="text-white/70" /> Add to home screen
-                                  </button>
+                                    <button 
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        if ('serviceWorker' in navigator && window.matchMedia('(display-mode: standalone)').matches === false) {
+                                          alert(`To add "${playlist.name}" to your home screen, tap the share icon or menu in your browser and select "Add to Home Screen". The app will open directly to your playlists.`);
+                                        } else {
+                                          alert(`"${playlist.name}" shortcut prepared. Use your browser's "Add to Home Screen" feature.`);
+                                        }
+                                        setActiveMenuId(null); 
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3.5 text-base font-medium text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-none"
+                                    >
+                                      <Smartphone size={16} className="text-white/70" /> Add to home screen
+                                    </button>
 
-                                  <div className="h-px bg-white/5 my-1 mx-2" />
+                                    <div className="h-px bg-white/5 my-1 mx-2" />
 
-                                  <button
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      setActiveMenuId(null);
-                                      handleDeleteClick(e, playlist);
-                                    }}
-                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-red-400 hover:bg-white/5 transition-colors flex items-center gap-3 mb-safe md:mb-0 rounded-none"
-                                  >
-                                    <Trash2 size={16} />
-                                    Delete playlist
-                                  </button>
-                                </>
-                               ) : (
-                                <>
-                                  <button 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      fileInputRef.current?.click();
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5 transition-colors rounded-none"
-                                  >
-                                    <Upload size={16} className="text-white/70" /> Pick from gallery
-                                  </button>
-                                  
-                                  <button 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      searchInternetArtwork(playlist);
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5 transition-colors rounded-none"
-                                  >
-                                    <Globe size={16} className="text-white/70" /> Pick from internet
-                                  </button>
-                                  
-                                  <button 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      resetArtwork(playlist.id);
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5 transition-colors rounded-none"
-                                  >
-                                    <RotateCcw size={16} className="text-white/70" /> Reset
-                                  </button>
-                                  <input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    className="hidden" 
-                                    ref={fileInputRef} 
-                                    onChange={(e) => handleFileUpload(e, playlist)} 
-                                  />
-                                </>
-                               )}
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setActiveMenuId(null);
+                                        handleDeleteClick(e, playlist);
+                                      }}
+                                      className="w-full text-left text-base font-medium text-red-400 whitespace-nowrap hover:bg-white/5 transition-colors flex items-center justify-start gap-4 px-4 py-3.5 rounded-none"
+                                    >
+                                      <Trash2 size={16} />
+                                      Delete playlist
+                                    </button>
+                                  </>
+                                 ) : (
+                                  <>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        fileInputRef.current?.click();
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3.5 text-base font-medium text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-none"
+                                    >
+                                      <Upload size={16} className="text-white/70" /> Pick from gallery
+                                    </button>
+                                    
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        searchInternetArtwork(playlist);
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3.5 text-base font-medium text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-none"
+                                    >
+                                      <Globe size={16} className="text-white/70" /> Pick from internet
+                                    </button>
+                                    
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        resetArtwork(playlist.id);
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3.5 text-base font-medium text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-none"
+                                    >
+                                      <RotateCcw size={16} className="text-white/70" /> Reset
+                                    </button>
+                                  </>
+                                 )}
                               </div>
                             </motion.div>
+
+                            {/* Desktop Dialog (Centered Modal style) */}
+                            <motion.div
+                              ref={menuRefDesktop}
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.95 }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="hidden md:block md:fixed md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-64 md:z-[9999] bg-[#18181b] border border-neutral-800 rounded-xl shadow-2xl p-4 flex flex-col overflow-hidden"
+                            >
+                              {/* Header */}
+                              <div className="p-2 border-b border-neutral-800 flex items-center justify-between shrink-0 mb-2">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center border border-white/5 shadow-inner">
+                                    <Music size={14} className="text-white/50" />
+                                  </div>
+                                  <div>
+                                    <h3 className="font-bold text-xs text-white truncate max-w-[120px]">{playlist.name}</h3>
+                                    <p className="text-[9px] text-neutral-400 font-medium mt-0.5">{playlist.songIds?.length || 0} Tracks</p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Actions */}
+                              <div className="flex flex-col gap-1">
+                                 {menuView === "main" ? (
+                                  <>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const songs = getPlayableSongs(playlist);
+                                        if (songs.length > 0) {
+                                          setSong(songs[0], songs);
+                                        }
+                                        setActiveMenuId(null);
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3 text-sm font-semibold text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-lg"
+                                    >
+                                      <LucidePlay size={16} className="text-white/70" /> Play
+                                    </button>
+                                    
+                                    <button 
+                                      onClick={(e) => { 
+                                        e.stopPropagation();
+                                        const songs = getPlayableSongs(playlist);
+                                        if (songs.length > 0) {
+                                          if (queue.length === 0) {
+                                            setSong(songs[0], songs);
+                                          } else {
+                                            const newQueue = [
+                                              ...queue.slice(0, currentIndex + 1),
+                                              ...songs,
+                                              ...queue.slice(currentIndex + 1)
+                                            ];
+                                            setQueue(newQueue);
+                                          }
+                                        }
+                                        setActiveMenuId(null); 
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3 text-sm font-semibold text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-lg"
+                                    >
+                                      <SkipForward size={16} className="text-white/70" /> Play next
+                                    </button>
+                                    
+                                    <button 
+                                      onClick={(e) => { 
+                                        e.stopPropagation();
+                                        const songs = getPlayableSongs(playlist);
+                                        if (songs.length > 0) {
+                                          if (queue.length === 0) {
+                                            setSong(songs[0], songs);
+                                          } else {
+                                            setQueue([...queue, ...songs]);
+                                          }
+                                        }
+                                        setActiveMenuId(null); 
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3 text-sm font-semibold text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-lg"
+                                    >
+                                      <ListPlus size={16} className="text-white/70" /> Add to queue
+                                    </button>
+
+                                    <div className="h-px bg-white/5 my-1 mx-2" />
+
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPlaylistToRename(playlist);
+                                        setRenameInput(playlist.name);
+                                        setActiveMenuId(null);
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3 text-sm font-semibold text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-lg"
+                                    >
+                                      <Edit2 size={16} className="text-white/70" /> Rename playlist
+                                    </button>
+
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); setMenuView("artwork"); }}
+                                      onMouseEnter={(e) => e.stopPropagation()}
+                                      onMouseLeave={(e) => e.stopPropagation()}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3 text-sm font-semibold text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-lg"
+                                    >
+                                      <ImageIcon size={16} className="text-white/70" /> Artwork
+                                    </button>
+
+                                    <button 
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        if ('serviceWorker' in navigator && window.matchMedia('(display-mode: standalone)').matches === false) {
+                                          alert(`To add "${playlist.name}" to your home screen, tap the share icon or menu in your browser and select "Add to Home Screen". The app will open directly to your playlists.`);
+                                        } else {
+                                          alert(`"${playlist.name}" shortcut prepared. Use your browser's "Add to Home Screen" feature.`);
+                                        }
+                                        setActiveMenuId(null); 
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3 text-sm font-semibold text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-lg"
+                                    >
+                                      <Smartphone size={16} className="text-white/70" /> Add to home screen
+                                    </button>
+
+                                    <div className="h-px bg-white/5 my-1 mx-2" />
+
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setActiveMenuId(null);
+                                        handleDeleteClick(e, playlist);
+                                      }}
+                                      className="w-full text-left text-sm font-semibold text-red-400 whitespace-nowrap hover:bg-white/5 transition-colors flex items-center justify-start gap-4 px-4 py-3 rounded-lg"
+                                    >
+                                      <Trash2 size={16} />
+                                      Delete playlist
+                                    </button>
+                                  </>
+                                 ) : (
+                                  <>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        fileInputRef.current?.click();
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3 text-sm font-semibold text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-lg"
+                                    >
+                                      <Upload size={16} className="text-white/70" /> Pick from gallery
+                                    </button>
+                                    
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        searchInternetArtwork(playlist);
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3 text-sm font-semibold text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-lg"
+                                    >
+                                      <Globe size={16} className="text-white/70" /> Pick from internet
+                                    </button>
+                                    
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        resetArtwork(playlist.id);
+                                      }}
+                                      className="w-full flex items-center justify-start gap-4 px-4 py-3 text-sm font-semibold text-white whitespace-nowrap hover:bg-white/5 transition-colors rounded-lg"
+                                    >
+                                      <RotateCcw size={16} className="text-white/70" /> Reset
+                                    </button>
+                                  </>
+                                 )}
+                              </div>
+                            </motion.div>
+
+                            {/* Single hidden file input for custom artwork picker */}
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              ref={fileInputRef} 
+                              onChange={(e) => handleFileUpload(e, playlist)} 
+                            />
+                          </>
                         )}
                       </AnimatePresence>
                     </div>

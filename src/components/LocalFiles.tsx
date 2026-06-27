@@ -5,6 +5,7 @@ import { usePlayerStore, Song } from "../store/usePlayerStore";
 import { LikeButton } from "./LikeButton";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../lib/utils";
+import { TrackOptionsMenu } from "./TrackOptionsMenu";
 import { getAllTracks, saveTrack, deleteTrack as removeFromOffline, OfflineTrack, isTrackOffline, getTrack } from "../lib/offlineStorage";
 import { fetchLyrics } from "../services/lyricsService";
 import { searchSpotifyTrack } from "../services/spotifyService";
@@ -20,6 +21,7 @@ export default function LocalFiles() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState({ current: 0, total: 0 });
   const [trackToDelete, setTrackToDelete] = useState<Song | null>(null);
+  const [activeMenuSong, setActiveMenuSong] = useState<Song | null>(null);
   const [deviceDelete, setDeviceDelete] = useState(false);
   const [showScanComplete, setShowScanComplete] = useState(false);
   const [sortBy, setSortBy] = useState<"title" | "artist" | "genre" | "default">("default");
@@ -676,12 +678,15 @@ export default function LocalFiles() {
                    </div>
                    
                    <div className="flex-shrink-0 flex items-center gap-3 ml-auto">
+                     <span className="text-[10px] text-zinc-500 font-mono shrink-0 w-10 text-right">
+                       {song.duration ? `${Math.floor(song.duration / 60)}:${(song.duration % 60).toString().padStart(2, '0')}` : "0:00"}
+                     </span>
                      <button 
                        onClick={(e) => {
                          e.stopPropagation();
                          attemptRemoveSong(e, song);
                        }}
-                       className="text-white/40 hover:text-red-400 transition-colors"
+                       className="text-white/40 hover:text-red-400 transition-colors hidden md:block"
                        title="Remove from vault"
                      >
                        <Trash2 size={16} />
@@ -692,7 +697,7 @@ export default function LocalFiles() {
                          handleFetchLyrics(song);
                        }}
                        className={cn(
-                         "transition-colors",
+                         "transition-colors hidden md:block",
                          song.lyrics && song.lyrics.length > 0 ? "text-purple-400" : "text-white/40 hover:text-purple-400",
                          fetchingLyrics[song.id] && "animate-pulse brightness-150"
                        )}
@@ -700,15 +705,17 @@ export default function LocalFiles() {
                      >
                        <RefreshCw size={16} className={cn(fetchingLyrics[song.id] && "animate-spin")} />
                      </button>
-                     <LikeButton targetId={song.id} type="song" size={16} className="transition-all flex" />
-                     <Link 
-                        to={`/song/${song.id}`}
-                        onClick={(e) => e.stopPropagation()}
+                     <LikeButton targetId={song.id} type="song" size={16} className="transition-all hidden md:flex" />
+                     <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuSong(song);
+                        }}
                         className="text-white/40 hover:text-white transition-colors"
                         title="View Details"
                      >
                         <MoreHorizontal size={16} />
-                     </Link>
+                     </button>
                    </div>
                  </div>
               </motion.div>
@@ -716,6 +723,16 @@ export default function LocalFiles() {
           </AnimatePresence>
         </div>
       )}
+
+      {/* Track Options Menu */}
+      <AnimatePresence>
+        {activeMenuSong && (
+          <TrackOptionsMenu 
+            track={activeMenuSong}
+            onClose={() => setActiveMenuSong(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {isScanning && (
         <div className="fixed bottom-32 right-8 bg-[#0F0F12] border border-white/10 px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-4 z-[110]">

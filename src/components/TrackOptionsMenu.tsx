@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { 
   SkipForward, 
   ListPlus, 
@@ -159,11 +160,15 @@ export function TrackOptionsMenu({ track, onClose, playlistId, onRemove }: Track
     });
   }
 
-  const containerClasses = "fixed top-20 bottom-0 left-0 right-0 w-full z-50 bg-[#18181b] rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:relative md:top-auto md:bottom-auto md:left-auto md:right-auto md:w-[400px] md:bg-neutral-900 md:rounded-3xl md:shadow-2xl md:overflow-visible";
+  const containerClasses = "fixed inset-x-0 bottom-0 h-[75vh] z-[99999] bg-[#18181b] rounded-t-3xl shadow-2xl overflow-hidden flex flex-col md:relative md:top-auto md:bottom-auto md:left-auto md:right-auto md:w-[400px] md:h-auto md:max-h-none md:bg-neutral-900 md:rounded-3xl md:shadow-2xl md:overflow-visible md:z-50";
 
-  const wrapperClasses = "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center md:p-6";
+  const wrapperClasses = "fixed inset-0 z-[99999] md:z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center md:p-6";
 
-  return (
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <>
       <div className={wrapperClasses} onClick={(e) => {
          if(e.target === e.currentTarget) onClose();
@@ -211,7 +216,7 @@ export function TrackOptionsMenu({ track, onClose, playlistId, onRemove }: Track
           </div>
 
           {/* ORDERED ACTION ITEMS LIST */}
-          <div className="flex-1 h-full overflow-y-auto md:overflow-visible px-2 py-2 pb-12">
+          <div className="h-full overflow-y-auto pb-8 pt-2 px-4 md:overflow-visible flex flex-col justify-start">
             {menuItems.map((item, idx) => {
               if (item.label === 'Artwork') {
                 return (
@@ -280,9 +285,6 @@ export function TrackOptionsMenu({ track, onClose, playlistId, onRemove }: Track
               );
             })}
           </div>
-          
-          {/* Bottom padding for mobile safe area */}
-          <div className="h-6 shrink-0 md:hidden" />
         </motion.div>
       </div>
 
@@ -298,7 +300,7 @@ export function TrackOptionsMenu({ track, onClose, playlistId, onRemove }: Track
         )}
 
         {showInternetPicker && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowInternetPicker(false)} />
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -344,6 +346,7 @@ export function TrackOptionsMenu({ track, onClose, playlistId, onRemove }: Track
         )}
       </AnimatePresence>
       <input type="file" id="track-art-upload" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleTrackArtChange} />
-    </>
+    </>,
+    document.body
   );
 }

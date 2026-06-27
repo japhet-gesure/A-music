@@ -1314,7 +1314,7 @@ export default function Search() {
                             targetId={song.id}
                             type="song"
                             size={16}
-                            className="transition-all flex"
+                            className="transition-all hidden md:flex"
                           />
 
                           <div className="relative">

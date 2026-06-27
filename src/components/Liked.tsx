@@ -8,6 +8,7 @@ import { db, auth } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { fetchSongMetadata } from "../services/musicService";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
+import { TrackOptionsMenu } from "./TrackOptionsMenu";
 import { cn } from "../lib/utils";
 import { LikeButton } from "./LikeButton";
 // import { getTrack } from "../lib/offlineStorage";
@@ -18,6 +19,7 @@ export default function Liked() {
   const [playlists, setPlaylists] = useState<any[]>([]);
   const [loadingPlaylists, setLoadingPlaylists] = useState(true);
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [activeMenuSong, setActiveMenuSong] = useState<Song | null>(null);
 
   useEffect(() => {
     const fetchLikedPlaylists = async () => {
@@ -181,26 +183,38 @@ export default function Liked() {
                     
                     <button 
                       onClick={(e) => { e.stopPropagation(); setSelectedSong(song); }}
-                      className="text-white/40 hover:text-white transition-all"
+                      className="text-white/40 hover:text-white transition-all hidden md:block"
                       title="Add to Playlist"
                     >
                       <ListPlus size={16} />
                     </button>
-                    <LikeButton targetId={song.id} type="song" song={song} size={16} className="transition-all flex" />
-                    <Link 
-                      to={`/song/${song.id}`}
-                      onClick={(e) => e.stopPropagation()}
+                    <LikeButton targetId={song.id} type="song" song={song} size={16} className="transition-all hidden md:flex" />
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenuSong(song);
+                      }}
                       className="text-white/40 hover:text-white transition-all"
                       title="View Details"
                     >
                       <MoreHorizontal size={16} />
-                    </Link>
+                    </button>
                   </div>
                 </motion.div>
               );
             })}
           </div>
         )}
+
+        {/* Track Options Menu */}
+        <AnimatePresence>
+          {activeMenuSong && (
+            <TrackOptionsMenu 
+              track={activeMenuSong}
+              onClose={() => setActiveMenuSong(null)}
+            />
+          )}
+        </AnimatePresence>
       </section>
     </div>
   );

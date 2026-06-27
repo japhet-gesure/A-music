@@ -14,6 +14,17 @@ export default function Explore() {
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const { setSong, currentSong, isPlaying, togglePlay } = usePlayerStore();
 
+  const formatDuration = (d: any) => {
+    if (!d) return "0:00";
+    if (typeof d === 'string') {
+      d = parseFloat(d.split('.')[0]);
+    }
+    const totalSeconds = Math.floor(Number(d) || 0);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     const fetchTrending = async () => {
       setLoading(true);

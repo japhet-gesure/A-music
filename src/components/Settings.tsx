@@ -201,7 +201,7 @@ export default function Settings() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 pb-24">
+    <div className="w-full max-w-md mx-auto md:max-w-4xl md:w-full space-y-12 pb-24">
       <header className="flex flex-col sm:flex-row items-center sm:items-end gap-6 text-center sm:text-left">
         <div className="w-16 h-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl shrink-0">
           <SettingsIcon className="w-8 h-8 text-white/40" />
@@ -297,16 +297,16 @@ export default function Settings() {
 
         <div className="bg-white/[0.02] border border-white/5 rounded-[40px] p-6 md:p-10 space-y-1">
           {/* Row 1: Show directories (Toggle) */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Folder size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Show directories
                 </span>
-                <span className="text-xs text-white/30 truncate">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Toggle tree-view directories for physical files
                 </span>
               </div>
@@ -329,16 +329,16 @@ export default function Settings() {
           </div>
 
           {/* Row 2: Night mode (Toggle) */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Moon size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Night mode
                 </span>
-                <span className="text-xs text-white/30 truncate">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Adjust contrast curves specifically for night environments
                 </span>
               </div>
@@ -361,16 +361,16 @@ export default function Settings() {
           </div>
 
           {/* Row 3: Auto-rotate album cover (Toggle) */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <RotateCw size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Auto-rotate album cover
                 </span>
-                <span className="text-xs text-white/30 truncate">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Enable circular visual kinetic spinning effects inside
                   nowplaying
                 </span>
@@ -394,16 +394,16 @@ export default function Settings() {
           </div>
 
           {/* Row 4: Forward and backward (Toggle) */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <ArrowRightLeft size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Forward and backward
                 </span>
-                <span className="text-xs text-white/30 leading-relaxed max-w-sm sm:max-w-xl">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Show forward and backward buttons on nowplaying page
                 </span>
               </div>
@@ -429,17 +429,17 @@ export default function Settings() {
           <div className="flex flex-col border-b border-zinc-800/40 py-2">
             <div
               onClick={() => setShowFastForwardModal(!showFastForwardModal)}
-              className="flex justify-between items-center py-2 min-h-[56px] cursor-pointer hover:bg-white/[0.01] px-2 rounded-2xl transition-all"
+              className="flex justify-between items-center w-full gap-4 py-2 min-h-[56px] cursor-pointer hover:bg-white/[0.01] px-2 rounded-2xl transition-all"
             >
               <div className="flex items-center gap-4 min-w-0 pr-4">
                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                   <Clock size={18} />
                 </div>
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col flex-1 min-w-0">
                   <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                     Time to fast forward and backward
                   </span>
-                  <span className="text-xs text-white/30 truncate">
+                  <span className="text-xs text-neutral-400 break-words whitespace-normal">
                     Set duration parameter for manual seek overrides
                   </span>
                 </div>
@@ -490,16 +490,16 @@ export default function Settings() {
           </div>
 
           {/* Row 6: Music stops playing? (Permission check link) */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <AlertCircle size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5 font-bold">
                   Music stops playing?
                 </span>
-                <span className="text-xs text-white/30 leading-relaxed max-w-sm sm:max-w-xl">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Grant permission to avoid abnormal music stops.
                 </span>
               </div>
@@ -538,17 +538,17 @@ export default function Settings() {
           <div className="flex flex-col border-b border-zinc-800/40 py-2">
             <div
               onClick={() => setShowQueueDropdown(!showQueueDropdown)}
-              className="flex justify-between items-center py-2 min-h-[56px] cursor-pointer hover:bg-white/[0.01] px-2 rounded-2xl transition-all"
+              className="flex justify-between items-center w-full gap-4 py-2 min-h-[56px] cursor-pointer hover:bg-white/[0.01] px-2 rounded-2xl transition-all"
             >
               <div className="flex items-center gap-4 min-w-0 pr-4">
                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                   <ListMusic size={18} />
                 </div>
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col flex-1 min-w-0">
                   <span className="text-sm font-semibold tracking-tight text-white mb-0.5 font-bold">
                     Queue after searching
                   </span>
-                  <span className="text-xs text-white/30 truncate">
+                  <span className="text-xs text-neutral-400 break-words whitespace-normal">
                     Manage which matches populate playback streams
                   </span>
                 </div>
@@ -604,16 +604,16 @@ export default function Settings() {
           </div>
 
           {/* Row 8: Accent color (Color picker link) */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Palette size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Accent color
                 </span>
-                <span className="text-xs text-white/30 truncate">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   The accent theme color
                 </span>
               </div>
@@ -652,17 +652,17 @@ export default function Settings() {
           <div className="flex flex-col border-b border-zinc-800/40 py-2">
             <div
               onClick={() => setShowEffectsDropdown(!showEffectsDropdown)}
-              className="flex justify-between items-center py-2 min-h-[56px] cursor-pointer hover:bg-white/[0.01] px-2 rounded-2xl transition-all"
+              className="flex justify-between items-center w-full gap-4 py-2 min-h-[56px] cursor-pointer hover:bg-white/[0.01] px-2 rounded-2xl transition-all"
             >
               <div className="flex items-center gap-4 min-w-0 pr-4">
                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                   <Layers size={18} />
                 </div>
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col flex-1 min-w-0">
                   <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                     Page Effects
                   </span>
-                  <span className="text-xs text-white/30 truncate">
+                  <span className="text-xs text-neutral-400 break-words whitespace-normal">
                     Page switching effect for Nowplaying
                   </span>
                 </div>
@@ -715,16 +715,16 @@ export default function Settings() {
             </AnimatePresence>
           </div>
 
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <AlertCircle size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Confirm Deletions
                 </span>
-                <span className="text-xs text-white/30 truncate">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Show popup when deleting playlists or songs
                 </span>
               </div>
@@ -753,16 +753,16 @@ export default function Settings() {
           </div>
 
           {/* Row 10: Find Duplicate (Action click link) */}
-          <div className="flex justify-between items-center py-4 last:border-b-0 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 last:border-b-0 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Copy size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Find Duplicate
                 </span>
-                <span className="text-xs text-white/30 truncate">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Scan active streams and cache arrays for identical audio
                   records
                 </span>
@@ -809,12 +809,12 @@ export default function Settings() {
         </div>
         <div className="bg-white/[0.02] border border-white/5 rounded-[40px] p-6 md:p-10 space-y-1">
           {/* Desktop lyrics */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Monitor size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Desktop lyrics
                 </span>
@@ -838,12 +838,12 @@ export default function Settings() {
           </div>
 
           {/* Car bluetooth lyrics */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Bluetooth size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Car bluetooth lyrics
                 </span>
@@ -867,16 +867,16 @@ export default function Settings() {
           </div>
 
           {/* Status bar lyrics */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Smartphone size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Status bar lyrics
                 </span>
-                <span className="text-xs text-white/30 truncate">Off</span>
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">Off</span>
               </div>
             </div>
             <button
@@ -897,16 +897,16 @@ export default function Settings() {
           </div>
 
           {/* Lyrics Backdrop */}
-          <div className="flex justify-between items-center py-4 border-b-0 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b-0 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Layers size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Lyrics glass backdrop
                 </span>
-                <span className="text-xs text-white/30 truncate">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Adds a semi-transparent layer for better readability against album art
                 </span>
               </div>
@@ -939,11 +939,11 @@ export default function Settings() {
                 className="border-t border-white/5 py-4 space-y-3 overflow-hidden"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
+                  <div className="flex flex-col flex-1 min-w-0">
                     <span className="text-sm font-semibold text-white/95">
                       Backdrop blur intensity
                     </span>
-                    <span className="text-xs text-white/40 truncate">
+                    <span className="text-xs text-neutral-400 break-words whitespace-normal">
                       Control how blurry the background behind lyrics appears
                     </span>
                   </div>
@@ -984,12 +984,12 @@ export default function Settings() {
         </div>
         <div className="bg-white/[0.02] border border-white/5 rounded-[40px] p-6 md:p-10 space-y-1">
           {/* Shake to play next song */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Activity size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Shake to play next song
                 </span>
@@ -1013,12 +1013,12 @@ export default function Settings() {
           </div>
 
           {/* Swipe to change songs */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Hand size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Swipe to change songs
                 </span>
@@ -1042,12 +1042,12 @@ export default function Settings() {
           </div>
 
           {/* Allow others playing music while Music Player playing */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Volume2 size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5 leading-tight">
                   Allow others playing music while Music Player playing
                 </span>
@@ -1071,16 +1071,16 @@ export default function Settings() {
           </div>
 
           {/* Play/pause fade */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Radio size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Play/pause fade
                 </span>
-                <span className="text-xs text-white/30 truncate">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Fade during play/pause
                 </span>
               </div>
@@ -1103,16 +1103,16 @@ export default function Settings() {
           </div>
 
           {/* Gapless Playback */}
-          <div className="flex justify-between items-center py-4 border-b border-zinc-800/40 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b border-zinc-800/40 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <InfinityIcon size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Gapless Playback
                 </span>
-                <span className="text-xs text-white/30 truncate">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Seamless uninterrupted music
                 </span>
               </div>
@@ -1135,16 +1135,16 @@ export default function Settings() {
           </div>
 
           {/* Crossfade */}
-          <div className="flex justify-between items-center py-4 border-b-0 min-h-[72px]">
+          <div className="flex justify-between items-center w-full gap-4 py-4 border-b-0 min-h-[72px]">
             <div className="flex items-center gap-4 min-w-0 pr-4">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 shrink-0">
                 <Shuffle size={18} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-semibold tracking-tight text-white mb-0.5">
                   Crossfade
                 </span>
-                <span className="text-xs text-white/30 truncate">
+                <span className="text-xs text-neutral-400 break-words whitespace-normal">
                   Fade duration between songs
                 </span>
               </div>

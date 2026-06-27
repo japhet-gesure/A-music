@@ -202,6 +202,17 @@ export default function PlaylistDetail() {
     setShowMenu(false);
   };
 
+  const formatDuration = (d: any) => {
+    if (!d) return "0:00";
+    if (typeof d === 'string') {
+      d = parseFloat(d.split('.')[0]);
+    }
+    const totalSeconds = Math.floor(Number(d) || 0);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   if (loading) return <div className="animate-pulse flex items-center justify-center py-20">Loading...</div>;
   if (!playlist) return <div className="text-center py-20 font-black italic">PLAYLIST NOT FOUND</div>;
 
@@ -617,7 +628,7 @@ export default function PlaylistDetail() {
                       <span className={cn("text-xs font-mono block", isActive ? "text-purple-400 group-hover:hidden" : "text-zinc-600 group-hover:hidden")}>
                         {i + 1}
                       </span>
-                      <Play size={12} className={cn("hidden group-hover:block", isActive ? "text-purple-400" : "text-white/40")} />
+                      <Play size={12} className={cn("hidden md:group-hover:block", isActive ? "text-purple-400" : "text-white/40")} />
                     </>
                   )}
                 </div>
@@ -644,19 +655,19 @@ export default function PlaylistDetail() {
 
                 <div className="flex-shrink-0 flex items-center gap-3 ml-auto">
                    <span className={cn("text-[10px] font-mono shrink-0 w-10 text-right", isActive ? "text-purple-400" : "text-zinc-600")}>
-                      {song?.duration ? `${Math.floor(song.duration / 60)}:${(song.duration % 60).toString().padStart(2, '0')}` : "0:00"}
+                      {formatDuration(song?.duration)}
                    </span>
 
                    {canEdit && (
                      <button 
                        onClick={(e) => { e.stopPropagation(); attemptRemoveSong(songId); }}
-                       className="text-zinc-500 hover:text-red-500 transition-colors"
+                       className="text-zinc-500 hover:text-red-500 transition-colors hidden md:block"
                      >
                        <Trash2 size={16} />
                      </button>
                    )}
 
-                   <LikeButton targetId={songId} type="song" size={16} className="transition-all flex" />
+                   <LikeButton targetId={songId} type="song" size={16} className="transition-all hidden md:flex" />
                    <button 
                       onClick={(e) => { 
                         e.stopPropagation(); 

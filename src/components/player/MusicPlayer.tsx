@@ -64,6 +64,7 @@ import { cn } from "../../lib/utils";
 import { LyricsEditor } from "./LyricsEditor";
 import { useLocation } from "react-router-dom";
 import { LikeButton } from "../LikeButton";
+import { AddToPlaylistModal } from "../AddToPlaylistModal";
 import { ArtistDetails } from "../ArtistDetails";
 import { EqualizerControls } from "./EqualizerControls";
 import { scanDeviceDirectory } from "../../services/localDeviceScanner";
@@ -437,6 +438,7 @@ export function MusicPlayer({
   const [showMobileAudioSettings, setShowMobileAudioSettings] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showPlayer, setShowPlayer] = useState(true);
+  const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
 
   // Guarantee that when the application first loads or refreshes, the YouTube player window initializes in its floating state
   useEffect(() => {
@@ -1172,7 +1174,7 @@ export function MusicPlayer({
           },
           onError: (event: any) => {
             const errorCode = event.data;
-            console.error("YouTube Player Error:", errorCode);
+            console.warn("YouTube Player Error:", errorCode);
             setYtPlaybackError(true);
             setYtPlaybackErrorCode(errorCode);
 
@@ -4627,7 +4629,7 @@ export function MusicPlayer({
                       background: "#000",
                     }}
                     className={cn(
-                      "fixed top-0 left-0 right-0 bottom-0 md:bottom-24 z-[100] bg-[#060608] flex flex-col items-center justify-start lg:justify-center px-4 py-4 lg:p-16 overflow-y-auto overflow-x-hidden select-none scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10",
+                      "fixed top-0 left-0 right-0 bottom-0 md:bottom-24 z-[100] bg-[#060608] flex flex-col items-center justify-start lg:justify-center px-4 py-4 lg:p-16 w-full h-full overflow-y-auto pb-4 scrollbar-none select-none",
                       isFullScreen ? "fullscreen-active" : "",
                     )}
                   >
@@ -4659,14 +4661,14 @@ export function MusicPlayer({
 
                     <div
                       onDoubleClick={toggleFullScreen}
-                      className="relative z-10 w-full min-h-[min-content] lg:min-h-full flex flex-col justify-between px-0 sm:px-6 overflow-visible pt-16 pb-2 lg:py-6"
+                      className="relative z-10 w-full min-h-[min-content] lg:min-h-full flex flex-col justify-between px-0 sm:px-6 overflow-visible pt-4 md:pt-16 pb-2 lg:py-6"
                     >
                       <div
                         style={{
                           transform: `translateX(${slideX})`,
                           transition: slideTransition,
                         }}
-                        className="w-full min-h-full flex flex-col justify-between gap-8 lg:gap-0 items-center text-center py-2"
+                        className="w-full min-h-full flex flex-col justify-between lg:gap-0 items-center text-center py-2"
                       >
                         {/* Artwork Section */}
                         <motion.div
@@ -4680,10 +4682,10 @@ export function MusicPlayer({
                               : undefined
                           }
                           className={cn(
-                            "overflow-hidden shadow-[0_30px_60px_-10px_rgba(0,0,0,0.8)] sm:shadow-[0_100px_180px_-40px_rgba(0,0,0,0.9)] border border-white/10 ring-1 ring-white/20 transition-all duration-700 shrink-0 flex items-center justify-center bg-black relative",
+                            "my-2 md:my-0 md:mb-8 overflow-hidden shadow-[0_30px_60px_-10px_rgba(0,0,0,0.8)] sm:shadow-[0_100px_180px_-40px_rgba(0,0,0,0.9)] border border-white/10 ring-1 ring-white/20 transition-all duration-700 shrink-0 flex items-center justify-center bg-black relative",
                             isYTSource
-                              ? "w-full max-w-[280px] h-[280px] md:max-w-[340px] md:h-[340px] lg:max-w-[300px] lg:h-[300px] aspect-square rounded-full border-4 border-purple-500/20"
-                              : "w-full max-w-[280px] h-[280px] md:max-w-[340px] md:h-[340px] lg:max-w-[300px] lg:h-[300px] aspect-square rounded-[2rem] sm:rounded-[3rem] lg:rounded-[4rem]",
+                              ? "w-56 h-56 md:w-[340px] md:h-[340px] lg:max-w-[300px] lg:h-[300px] aspect-square rounded-full border-4 border-purple-500/20"
+                              : "w-56 h-56 md:w-[340px] md:h-[340px] lg:max-w-[300px] lg:h-[300px] aspect-square rounded-[2rem] sm:rounded-[3rem] lg:rounded-[4rem]",
                           )}
                         >
                           {isYTSource && currentSong ? (
@@ -4767,7 +4769,7 @@ export function MusicPlayer({
                               transition={{ delay: 0.1 }}
                               className="space-y-2 sm:space-y-4"
                             >
-                              <h1 className="text-3xl md:text-5xl font-bold text-center tracking-tight text-white leading-tight">
+                              <h1 className="text-2xl md:text-5xl font-black text-center tracking-tight text-white line-clamp-2 leading-tight mt-6 px-4">
                                 {currentSong
                                   ? decodeHtmlEntities(currentSong.title)
                                   : ""}
@@ -4792,9 +4794,9 @@ export function MusicPlayer({
                           </div>
 
                           {/* Player controls view - hidden on desktop immersive view to avoid duplicate controls with the persistent player bar */}
-                          <div className="w-full flex md:hidden flex-col space-y-4">
+                          <div className="w-full flex md:hidden flex-col">
                             {/* Progress */}
-                            <div className="space-y-3 sm:space-y-6 w-full">
+                            <div className="space-y-3 sm:space-y-6 w-full my-4 px-2">
                               <div className="flex justify-between text-[10px] sm:text-sm font-mono font-black text-white/40 uppercase tracking-[0.2em] sm:tracking-[0.4em]">
                                 <span>{formatTime(currentTime)}</span>
                                 {(!duration ||
@@ -4864,13 +4866,14 @@ export function MusicPlayer({
                             </div>
 
                             {/* Main Controls - Responsive size */}
-                            <div className="flex items-center justify-center lg:justify-start gap-8 sm:gap-16">
+                            <div className="flex items-center justify-center gap-4 w-full my-4 md:w-auto md:px-0 md:my-0 md:justify-center lg:justify-start md:gap-8 sm:gap-16">
                               <button
                                 onClick={previous}
                                 disabled={!hasPrev}
                                 className={cn(
-                                  "text-white/40 hover:text-white transition-all hover:scale-125 active:scale-90 p-2 sm:p-4 bg-white/5 rounded-full border border-white/5",
-                                  !hasPrev && "opacity-0",
+                                  "flex items-center justify-center shrink-0 w-14 h-14 sm:w-auto sm:h-auto sm:p-4 rounded-full transition-all hover:scale-110 active:scale-95",
+                                  "bg-white/10 text-white md:bg-transparent md:text-white/40 md:hover:text-white md:hover:bg-white/5",
+                                  !hasPrev && "opacity-50 pointer-events-none md:opacity-0",
                                 )}
                               >
                                 <SkipBack
@@ -4879,9 +4882,22 @@ export function MusicPlayer({
                                 />
                               </button>
 
+                              {/* Mobile Backward */}
+                              {forwardBackward && (
+                                <button
+                                  onClick={() => {
+                                    const curr = usePlayerStore.getState().currentTime;
+                                    usePlayerStore.getState().seekTo(Math.max(0, curr - 10));
+                                  }}
+                                  className="md:hidden p-2 text-white/40 hover:text-white transition-colors"
+                                >
+                                  <RotateCcw size={20} />
+                                </button>
+                              )}
+
                               <button
                                 onClick={togglePlay}
-                                className="w-16 h-16 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-full bg-white text-black flex items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.15)] lg:shadow-[0_0_120px_rgba(255,255,255,0.15)] hover:scale-110 active:scale-95 transition-all relative group/play"
+                                className="w-14 h-14 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-full bg-white text-black flex items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.15)] lg:shadow-[0_0_120px_rgba(255,255,255,0.15)] hover:scale-110 active:scale-95 transition-all relative group/play shrink-0"
                               >
                                 <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-transparent opacity-0 group-hover/play:opacity-100 transition-opacity rounded-full" />
                                 {isPlaying ? (
@@ -4897,14 +4913,27 @@ export function MusicPlayer({
                                 )}
                               </button>
 
+                              {/* Mobile Forward */}
+                              {forwardBackward && (
+                                <button
+                                  onClick={() => {
+                                    const curr = usePlayerStore.getState().currentTime;
+                                    const totalDur = usePlayerStore.getState().duration || 0;
+                                    usePlayerStore.getState().seekTo(Math.min(totalDur, curr + 10));
+                                  }}
+                                  className="md:hidden p-2 text-white/40 hover:text-white transition-colors"
+                                >
+                                  <RotateCw size={20} />
+                                </button>
+                              )}
+
                               <button
                                 onClick={next}
                                 disabled={!hasNext && repeatMode !== "all"}
                                 className={cn(
-                                  "text-white/40 hover:text-white transition-all hover:scale-125 active:scale-90 p-2 sm:p-4 bg-white/5 rounded-full border border-white/5",
-                                  !hasNext &&
-                                    repeatMode !== "all" &&
-                                    "opacity-0",
+                                  "flex items-center justify-center shrink-0 w-14 h-14 sm:w-auto sm:h-auto sm:p-4 rounded-full transition-all hover:scale-110 active:scale-95",
+                                  "bg-white/10 text-white md:bg-transparent md:text-white/40 md:hover:text-white md:hover:bg-white/5",
+                                  !hasNext && repeatMode !== "all" && "opacity-50 pointer-events-none md:opacity-0",
                                 )}
                               >
                                 <SkipForward
@@ -4914,7 +4943,53 @@ export function MusicPlayer({
                               </button>
                             </div>
 
-                            <div className="w-full space-y-4 relative px-0 sm:px-2 mb-2">
+                            {/* Secondary Utility Row (Mobile Only) */}
+                            <div className="flex items-center justify-between w-full px-4 mt-4 md:hidden">
+                              <button
+                                onClick={() => setIsShuffle(!isShuffle)}
+                                className={cn(
+                                  "flex items-center justify-center bg-neutral-900/60 p-3 rounded-xl border border-neutral-800/40 w-12 h-12 flex-shrink-0 transition-colors",
+                                  isShuffle ? "text-purple-400" : "text-white/40 hover:text-white"
+                                )}
+                              >
+                                <Shuffle size={20} />
+                              </button>
+
+                              {currentSong && (
+                                <LikeButton 
+                                  targetId={currentSong.id} 
+                                  type="song" 
+                                  song={currentSong}
+                                  className="flex items-center justify-center bg-neutral-900/60 p-3 rounded-xl border border-neutral-800/40 w-12 h-12 flex-shrink-0"
+                                  size={20}
+                                />
+                              )}
+                              
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowAddToPlaylist(true);
+                                }}
+                                className="flex items-center justify-center bg-neutral-900/60 p-3 rounded-xl border border-neutral-800/40 w-12 h-12 flex-shrink-0 text-white/40 hover:text-white transition-colors"
+                              >
+                                <Plus size={20} />
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  const modes: ("off" | "all" | "one")[] = ["off", "all", "one"];
+                                  setRepeatMode(modes[(modes.indexOf(repeatMode) + 1) % modes.length]);
+                                }}
+                                className={cn(
+                                  "flex items-center justify-center bg-neutral-900/60 p-3 rounded-xl border border-neutral-800/40 w-12 h-12 flex-shrink-0 transition-colors",
+                                  repeatMode !== "off" ? "text-indigo-400" : "text-white/40 hover:text-white"
+                                )}
+                              >
+                                <Repeat size={20} />
+                              </button>
+                            </div>
+
+                            <div className="w-full space-y-4 relative px-0 sm:px-2 mb-2 mt-4">
                               {/* Row 1: Volume Controller Slider */}
                               <div className="flex items-center justify-between w-full group px-4 py-3 bg-white/[0.02] rounded-2xl border border-transparent hover:border-white/10 transition-all shadow-lg hover:bg-white/[0.04]">
                                 <Volume2
@@ -5671,6 +5746,13 @@ export function MusicPlayer({
               />
             )}
           </AnimatePresence>
+
+          {showAddToPlaylist && currentSong && (
+            <AddToPlaylistModal 
+              song={currentSong} 
+              onClose={() => setShowAddToPlaylist(false)} 
+            />
+          )}
         </>
       )}
     </div>

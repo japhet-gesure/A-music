@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { 
   Sparkles, Radio, Play, Pause, Flame, Music, ChevronRight, Mic, 
-  Loader2, Headphones, ArrowRight, ListMusic, VolumeX, Star, Check, Info, Waves, Volume2
+  Loader2, Headphones, ArrowRight, ListMusic, VolumeX, Star, Check, Info, Waves, Volume2, MoreHorizontal
 } from "lucide-react";
 import { usePlayerStore, Song } from "../store/usePlayerStore";
 import { motion, AnimatePresence } from "motion/react";
@@ -505,9 +505,19 @@ export default function AIDJ() {
                           </div>
                         </div>
 
-                        <span className="text-[9px] font-mono text-zinc-600 font-bold ml-2 shrink-0">
-                          {song.duration ? `${Math.floor(song.duration / 60)}:${(song.duration % 60).toString().padStart(2, '0')}` : "--:--"}
-                        </span>
+                        <div className="flex-shrink-0 flex items-center gap-3 ml-auto">
+                          <span className="text-[9px] font-mono text-zinc-600 font-bold shrink-0 w-10 text-right">
+                            {song.duration ? `${Math.floor(song.duration / 60)}:${(song.duration % 60).toString().padStart(2, '0')}` : "--:--"}
+                          </span>
+                          <Link 
+                            to={`/song/${song.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-white/40 hover:text-white transition-all"
+                            title="View Details"
+                          >
+                            <MoreHorizontal size={14} />
+                          </Link>
+                        </div>
                       </motion.div>
                     );
                   })}
