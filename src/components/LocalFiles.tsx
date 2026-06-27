@@ -730,6 +730,16 @@ export default function LocalFiles() {
           <TrackOptionsMenu 
             track={activeMenuSong}
             onClose={() => setActiveMenuSong(null)}
+            onDeleteTrack={(trackId) => {
+              const song = localSongs.find(s => s.id === trackId);
+              if (song) {
+                if (requireDeleteConfirmation) {
+                  setTrackToDelete(song);
+                } else {
+                  executeRemoveSong(song.id);
+                }
+              }
+            }}
           />
         )}
       </AnimatePresence>

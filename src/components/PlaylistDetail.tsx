@@ -8,6 +8,7 @@ import { cn } from "../lib/utils";
 import { fetchSongMetadata } from "../services/musicService";
 import { safeLocalStorage } from "../lib/safeStorage";
 import { TrackOptionsMenu } from "./TrackOptionsMenu";
+import { deleteTrack as removeFromOffline } from "../lib/offlineStorage";
 
 export default function PlaylistDetail() {
   const { id } = useParams();
@@ -83,6 +84,20 @@ export default function PlaylistDetail() {
     const newSongIds = (playlist.songIds || []).filter((s: string) => s !== trackToDelete);
     updateLocalPlaylists({ ...playlist, songIds: newSongIds });
     setTrackToDelete(null);
+  };
+
+  const executePermanentDeleteSong = async (songId: string) => {
+    // Remove from current playlist if possible
+    if (canEdit && id && playlist) {
+      const newSongIds = (playlist.songIds || []).filter((s: string) => s !== songId);
+      updateLocalPlaylists({ ...playlist, songIds: newSongIds });
+    }
+    // Delete from offline storage
+    try {
+      await removeFromOffline(songId);
+    } catch (e) {
+      console.error("Failed to delete track from offline storage in PlaylistDetail screen:", e);
+    }
   };
 
   const renamePlaylist = () => {
@@ -799,6 +814,7 @@ export default function PlaylistDetail() {
             onClose={() => setActiveMenuSong(null)}
             playlistId={id}
             onRemove={() => attemptRemoveSong(activeMenuSong.id)}
+            onDeleteTrack={executePermanentDeleteSong}
           />
         )}
       </AnimatePresence>

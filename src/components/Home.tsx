@@ -8,7 +8,7 @@ import { cn } from "../lib/utils";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
 import { TrackOptionsMenu } from "./TrackOptionsMenu";
 import { TrackRow } from "./player/TrackRow";
-import { getAllTracks } from "../lib/offlineStorage";
+import { getAllTracks, deleteTrack as removeFromOffline } from "../lib/offlineStorage";
 import { downloadSong, getOfflineStatus } from "../services/downloadService";
 import AIPicks from "./AIPicks";
 
@@ -275,6 +275,14 @@ export default function Home() {
           <TrackOptionsMenu 
             track={activeMenuSong}
             onClose={() => setActiveMenuSong(null)}
+            onDeleteTrack={async (trackId) => {
+              try {
+                await removeFromOffline(trackId);
+                setOfflineSongs(prev => prev.filter(s => s.id !== trackId));
+              } catch (e) {
+                console.error("Failed to delete track from offline storage in Home screen:", e);
+              }
+            }}
           />
         )}
       </AnimatePresence>

@@ -14,8 +14,11 @@ interface LikeButtonProps {
 }
 
 export function LikeButton({ targetId, type, song: propSong, size = 18, className }: LikeButtonProps) {
-  const { likedSongs, likedPlaylists, toggleLike } = useLikeStore();
-  const isLiked = type === "song" ? likedSongs.has(targetId) : likedPlaylists.has(targetId);
+  const { likedSongs, toggleLikeSong } = usePlayerStore();
+  const { likedPlaylists, toggleLike } = useLikeStore();
+
+  const isTrackLiked = likedSongs.some(item => item.id === targetId);
+  const isLiked = type === "song" ? isTrackLiked : likedPlaylists.has(targetId);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -28,22 +31,20 @@ export function LikeButton({ targetId, type, song: propSong, size = 18, classNam
                    (playerStore.currentSong?.id === targetId ? playerStore.currentSong : null) ||
                    playerStore.likedSongs.find(s => s.id === targetId);
 
-      if (song) {
-        playerStore.toggleLikeSong(song);
-      } else {
-        // Fallback placeholder song if metadata cannot be resolved immediately to avoid state loss
-        playerStore.toggleLikeSong({
-          id: targetId,
-          title: "Unknown Track",
-          artist: "Unknown Artist",
-          thumbnail: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100&h=100&fit=crop",
-          source: "cloud",
-          sourceId: targetId
-        });
-      }
-    }
+      const finalSong = song || {
+        id: targetId,
+        title: "Unknown Track",
+        artist: "Unknown Artist",
+        thumbnail: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100&h=100&fit=crop",
+        source: "cloud",
+        sourceId: targetId
+      };
 
-    toggleLike(targetId, type);
+      playerStore.toggleLikeSong(finalSong);
+      toggleLike(targetId, "song");
+    } else {
+      toggleLike(targetId, "playlist");
+    }
   };
 
   return (
@@ -51,7 +52,7 @@ export function LikeButton({ targetId, type, song: propSong, size = 18, classNam
       onClick={handleClick}
       className={cn(
         "relative flex items-center justify-center transition-all hover:scale-110 active:scale-95",
-        isLiked ? "text-purple-500" : "text-white/20 hover:text-white/60",
+        isLiked ? "text-purple-500 fill-current" : "text-white/20 hover:text-white/60",
         className
       )}
     >

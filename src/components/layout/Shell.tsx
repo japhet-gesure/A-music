@@ -743,7 +743,7 @@ export function Shell({ children }: ShellProps) {
       </nav>
 
       {/* Integrated Player Bar */}
-      <footer className="fixed bottom-16 md:bottom-0 left-0 right-0 h-0 md:h-24 bg-transparent md:bg-[#0F0F12]/95 md:backdrop-blur-3xl border-none md:border-t md:border-white/5 z-50 md:z-[100]">
+      <footer className="fixed bottom-16 left-0 right-0 h-0 bg-transparent border-none z-50 md:flex md:opacity-100 md:pointer-events-auto md:fixed md:bottom-0 md:left-0 md:right-0 md:h-24 md:z-[105] md:bg-[#0a0a0a] md:border-t md:border-neutral-950">
         <MusicPlayer />
       </footer>
 

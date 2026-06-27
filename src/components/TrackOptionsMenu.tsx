@@ -15,7 +15,8 @@ import {
   Heart,
   X,
   Loader2,
-  Download
+  Download,
+  Trash2
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../lib/utils";
@@ -30,9 +31,11 @@ interface TrackOptionsMenuProps {
   onClose: () => void;
   playlistId?: string; // If provided, shows "Remove from Playlist"
   onRemove?: () => void; // Callback after remove
+  onDelete?: () => void; // Callback for delete track
+  onDeleteTrack?: (trackId: string) => void; // Callback for explicit delete track handling with ID
 }
 
-export function TrackOptionsMenu({ track, onClose, playlistId, onRemove }: TrackOptionsMenuProps) {
+export function TrackOptionsMenu({ track, onClose, playlistId, onRemove, onDelete, onDeleteTrack }: TrackOptionsMenuProps) {
   const { currentSong, queue, setQueue, addToQueue, updateSongThumbnail, likedSongs, toggleLikeSong, downloads } = usePlayerStore();
   const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
@@ -160,6 +163,22 @@ export function TrackOptionsMenu({ track, onClose, playlistId, onRemove }: Track
     });
   }
 
+  // Always keep "Delete track" at the absolute bottom
+  menuItems.push({
+    label: 'Delete track',
+    icon: <Trash2 size={20} />,
+    onClick: () => {
+      if (onDeleteTrack) {
+        onDeleteTrack(track.id);
+      } else if (onDelete) {
+        onDelete();
+      } else {
+        alert("Delete track feature not implemented");
+      }
+      onClose();
+    }
+  });
+
   const containerClasses = "fixed inset-x-0 bottom-0 h-[75vh] z-[99999] bg-[#18181b] rounded-t-3xl shadow-2xl overflow-hidden flex flex-col md:relative md:top-auto md:bottom-auto md:left-auto md:right-auto md:w-[400px] md:h-auto md:max-h-none md:bg-neutral-900 md:rounded-3xl md:shadow-2xl md:overflow-visible md:z-50";
 
   const wrapperClasses = "fixed inset-0 z-[99999] md:z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center md:p-6";
@@ -216,7 +235,7 @@ export function TrackOptionsMenu({ track, onClose, playlistId, onRemove }: Track
           </div>
 
           {/* ORDERED ACTION ITEMS LIST */}
-          <div className="h-full overflow-y-auto pb-8 pt-2 px-4 md:overflow-visible flex flex-col justify-start">
+          <div className="flex-1 min-h-0 overflow-y-auto pb-8 pt-2 px-4 md:overflow-visible flex flex-col justify-start">
             {menuItems.map((item, idx) => {
               if (item.label === 'Artwork') {
                 return (
@@ -271,12 +290,14 @@ export function TrackOptionsMenu({ track, onClose, playlistId, onRemove }: Track
                   disabled={(item as any).disabled}
                   className={cn(
                     "w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-colors hover:bg-white/10 active:bg-white/20 text-left disabled:opacity-50 disabled:cursor-not-allowed",
-                    item.label === 'Remove from Playlist' ? "text-[#ff5e52]" : "text-white"
+                    item.label === 'Remove from Playlist' ? "text-[#ff5e52]" : 
+                    item.label === 'Delete track' ? "text-red-500 hover:bg-red-950/30" : "text-white"
                   )}
                 >
                   <div className={cn(
                     "opacity-70",
-                    item.label === 'Remove from Playlist' ? "text-[#ff5e52]" : "text-white/70"
+                    item.label === 'Remove from Playlist' ? "text-[#ff5e52]" : 
+                    item.label === 'Delete track' ? "text-red-500 opacity-100" : "text-white/70"
                   )}>
                     {item.icon}
                   </div>

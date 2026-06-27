@@ -11,10 +11,10 @@ import { AddToPlaylistModal } from "./AddToPlaylistModal";
 import { TrackOptionsMenu } from "./TrackOptionsMenu";
 import { cn } from "../lib/utils";
 import { LikeButton } from "./LikeButton";
-// import { getTrack } from "../lib/offlineStorage";
+import { deleteTrack as removeFromOffline } from "../lib/offlineStorage";
 
 export default function Liked() {
-  const { likedSongs: persistedSongs, setSong, currentSong, isPlaying, togglePlay } = usePlayerStore();
+  const { likedSongs: persistedSongs, setSong, currentSong, isPlaying, togglePlay, toggleLikeSong } = usePlayerStore();
   const { likedPlaylists, toggleLike } = useLikeStore();
   const [playlists, setPlaylists] = useState<any[]>([]);
   const [loadingPlaylists, setLoadingPlaylists] = useState(true);
@@ -148,6 +148,7 @@ export default function Liked() {
           <div className="space-y-2">
             {persistedSongs.map((song, index) => {
               const isActive = currentSong?.id === song.id;
+              const isTrackLiked = persistedSongs.some(item => item.id === song.id);
               return (
                 <motion.div
                   key={song.id}
@@ -212,6 +213,16 @@ export default function Liked() {
             <TrackOptionsMenu 
               track={activeMenuSong}
               onClose={() => setActiveMenuSong(null)}
+              onDeleteTrack={async (trackId) => {
+                if (activeMenuSong) {
+                  toggleLikeSong(activeMenuSong);
+                  try {
+                    await removeFromOffline(trackId);
+                  } catch (e) {
+                    console.error("Failed to delete track from offline storage in Liked screen:", e);
+                  }
+                }
+              }}
             />
           )}
         </AnimatePresence>

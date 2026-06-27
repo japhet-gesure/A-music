@@ -3,7 +3,7 @@ import { Play, MoreHorizontal, Download, CheckCircle2, ListPlus } from "lucide-r
 import { LikeButton } from "../LikeButton";
 import { motion } from "motion/react";
 import { cn } from "../../lib/utils";
-import { Song } from "../../store/usePlayerStore";
+import { usePlayerStore, Song } from "../../store/usePlayerStore";
 
 export function TrackRow({ 
   song, 
@@ -28,6 +28,9 @@ export function TrackRow({
   recentlyPlayed: Song[],
   onOptionsMenu: (song: Song) => void
 }) {
+  const { likedSongs } = usePlayerStore();
+  const isTrackLiked = likedSongs.some(item => item.id === song.id);
+
   const formatDuration = (d: any) => {
     if (!d) return "0:00";
     if (typeof d === 'string') {
@@ -71,7 +74,7 @@ export function TrackRow({
         </button>
         
         <div className="hidden md:flex items-center gap-3">
-          <LikeButton targetId={song.id} type="song" size={16} className="opacity-100 transition-all" />
+          <LikeButton targetId={song.id} type="song" song={song} size={16} className="opacity-100 transition-all" />
           
           <button 
             onClick={(e) => { e.stopPropagation(); if (!isDownloaded && !isDownloading) handleDownload(song); }}

@@ -1966,7 +1966,7 @@ export function MusicPlayer({
   if (!isSidebar && !currentSong) {
     const defaultArtworkUrl = "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100&h=100&fit=crop";
     return (
-      <div id="player-outer" className="h-full relative flex flex-col justify-center px-8 select-none">
+      <div id="player-outer" className="h-full relative flex flex-col justify-center px-8 select-none md:flex md:opacity-100 md:pointer-events-auto md:fixed md:bottom-0 md:left-0 md:right-0 md:h-24 md:z-[105] md:bg-[#0a0a0a] md:border-t md:border-neutral-950">
         <div className="hidden md:flex items-center justify-between h-full select-none gap-2 lg:gap-4 opacity-50 pointer-events-none">
           {/* Song Info */}
           <div className="flex-1 flex items-center gap-3 lg:gap-5 min-w-0 pr-4 md:pr-6">
@@ -3058,7 +3058,7 @@ export function MusicPlayer({
   return (
     <div
       id="player-outer"
-      className="h-full relative flex flex-col justify-center px-8"
+      className="h-full relative flex flex-col justify-center px-8 md:flex md:opacity-100 md:pointer-events-auto md:fixed md:bottom-0 md:left-0 md:right-0 md:h-24 md:z-[105] md:bg-[#0a0a0a] md:border-t md:border-neutral-950"
     >
       {/* Persistent YouTube Iframe container */}
       {typeof document !== "undefined" &&
@@ -4629,7 +4629,7 @@ export function MusicPlayer({
                       background: "#000",
                     }}
                     className={cn(
-                      "fixed top-0 left-0 right-0 bottom-0 md:bottom-24 z-[100] bg-[#060608] flex flex-col items-center justify-start lg:justify-center px-4 py-4 lg:p-16 w-full h-full overflow-y-auto pb-4 scrollbar-none select-none",
+                      "fixed top-0 left-0 right-0 bottom-0 md:bottom-24 z-[100] bg-[#060608] flex flex-col items-center justify-start lg:justify-center px-4 py-4 lg:p-16 overflow-y-auto pb-4 scrollbar-none select-none",
                       isFullScreen ? "fullscreen-active" : "",
                     )}
                   >
